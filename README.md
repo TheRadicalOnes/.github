@@ -6,7 +6,7 @@ Organization-wide defaults for TheRadicalOnes. GitHub uses these in any repo tha
 |---|---|
 | [`.github/pull_request_template.md`](.github/pull_request_template.md) | Default PR template |
 | [`.github/workflows/pr-template.yml`](.github/workflows/pr-template.yml) | Reusable workflow that adds the PR template to PRs opened outside the website (Gearset, CLI, IDEs) |
-| [`.github/workflows/request-review-slack.yml`](.github/workflows/request-review-slack.yml) | Reusable workflow that posts a PR to #pull-requests in Slack when it has the `needs review` label and isn't a draft |
+| [`.github/workflows/request-review-slack.yml`](.github/workflows/request-review-slack.yml) | Reusable workflow that posts a PR to Slack when it has the `needs review` label and isn't a draft |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Default contributing guide: PR conventions, and where to find each project's branch and release rules |
 
 Edit a file here and it changes for every repo that uses the default.
@@ -35,7 +35,7 @@ It skips Gearset promotion PRs (`gs-pipeline/*`), bots, PRs that already have th
 
 ## Adding the Slack review-request workflow to a repo
 
-To post a repo's PRs to #pull-requests when they need a review, add this file to the repo as `.github/workflows/request-review-slack.yml`:
+To post a repo's PRs to Slack when they need a review, add this file to the repo as `.github/workflows/request-review-slack.yml`:
 
 ```yaml
 name: Request review in Slack

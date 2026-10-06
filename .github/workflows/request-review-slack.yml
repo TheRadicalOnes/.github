@@ -1,5 +1,5 @@
 # Lives in TheRadicalOnes/.github at .github/workflows/request-review-slack.yml
-# Reusable workflow: posts a PR to #pull-requests when it has the `needs review` label and isn't a draft.
+# Reusable workflow: posts a PR to Slack when it has the `needs review` label and isn't a draft.
 # Each repo calls this with a small caller file. Change the message or rules here only.
 name: Request review in Slack (reusable)
 
