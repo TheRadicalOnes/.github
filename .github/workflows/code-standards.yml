@@ -1,0 +1,132 @@
+# Reusable workflow: flags violations of the R1 Code Conventions in a pull request.
+# - check-pmd.mjs runs PMD (code-standards/ruleset.xml) on the changed files under source-path: Apex, Flows,
+#   Validation Rules, fields. Modified files are also analyzed in their base version, so only the findings a pull
+#   request introduces or makes worse are new; pre-existing ones are listed in the summary and never fail the check.
+# - check-new-files.mjs checks the ADDED files only: R1_ prefix and naming, one trigger per object.
+# Priority 1 rules are errors (Must) and priority 3 rules are warnings (Should).
+# Repos call this from .github/workflows/code-standards.yml (see the README). Rules and scripts: code-standards/.
+name: Code Standards (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      enforce:
+        description: Fail the check when there are new errors. Leave false during the adoption phase.
+        type: boolean
+        default: false
+      source-path:
+        description: Folder analyzed by PMD.
+        type: string
+        default: force-app
+      pmd-version:
+        description: PMD version to download.
+        type: string
+        default: "7.22.0"
+      node-version:
+        description: Node.js version used by the scripts.
+        type: string
+        default: "22"
+      standards-ref:
+        description: Ref of TheRadicalOnes/.github to take the ruleset and scripts from. Keep it equal to the ref in `uses:`.
+        type: string
+        default: v1
+
+jobs:
+  standards:
+    name: R1 code standards
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      PMD_VERSION: ${{ inputs.pmd-version }}
+      STANDARDS_DIR: .r1-standards/code-standards
+      # Annotations and the summary link to the docs at this ref.
+      STANDARDS_REF: ${{ inputs.standards-ref }}
+    steps:
+      # The pull request head, not the merge commit, so files and line numbers match the diff against the base.
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      # TheRadicalOnes/.github is public, so the default token can read it.
+      - name: Checkout code standards
+        uses: actions/checkout@v7
+        with:
+          repository: TheRadicalOnes/.github
+          ref: ${{ inputs.standards-ref }}
+          path: .r1-standards
+          persist-credentials: false
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Cache PMD
+        id: pmd-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.pmd/pmd-bin-${{ inputs.pmd-version }}
+          key: pmd-${{ inputs.pmd-version }}
+
+      - name: Install PMD
+        if: steps.pmd-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.pmd
+          curl -fsSL -o "$RUNNER_TEMP/pmd.zip" \
+            "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip"
+          unzip -q "$RUNNER_TEMP/pmd.zip" -d ~/.pmd
+
+      # On pull requests only the changed files are analyzed; a manual run analyzes all of source-path.
+      - name: PMD
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          SOURCE_PATH: ${{ inputs.source-path }}
+        run: |
+          export PMD_BIN="$HOME/.pmd/pmd-bin-${PMD_VERSION}/bin/pmd"
+          range=()
+          if [ -n "$BASE_SHA" ]; then
+            range=(--base "$BASE_SHA" --head "$HEAD_SHA")
+          fi
+          node "$STANDARDS_DIR/scripts/check-pmd.mjs" "${range[@]}" \
+            --root "$GITHUB_WORKSPACE" --source "$SOURCE_PATH" \
+            --output "$RUNNER_TEMP/pmd-findings.json"
+
+      # Exit code 1 means findings (reported by the summary); anything else is a failure of the check itself.
+      - name: Naming of new files
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node "$STANDARDS_DIR/scripts/check-new-files.mjs" \
+            --root "$GITHUB_WORKSPACE" --base "$BASE_SHA" --head "$HEAD_SHA" \
+            --output "$RUNNER_TEMP/new-files.json" || test "$?" -eq 1
+
+      - name: Summary
+        if: ${{ !cancelled() }}
+        env:
+          STANDARDS_ENFORCE: ${{ inputs.enforce }}
+        run: |
+          node "$STANDARDS_DIR/scripts/summary.mjs" \
+            --pmd "$RUNNER_TEMP/pmd-findings.json" \
+            --new-files "$RUNNER_TEMP/new-files.json"
+
+      - name: Upload findings
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: code-standards-findings
+          path: |
+            ${{ runner.temp }}/pmd-findings.json
+            ${{ runner.temp }}/new-files.json
+          if-no-files-found: ignore

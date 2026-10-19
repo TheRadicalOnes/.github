@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+<description>Fixture flow.</description>
+<label>Fixture</label>
+
+<formulas><name>forB_IsAdmin</name><dataType>Boolean</dataType><expression
+    >$Profile.Id = "00e5e000000AbCdAAA"</expression></formulas>
+</Flow>

@@ -1,0 +1,11 @@
+{
+  "name": "theradicalones-github",
+  "private": true,
+  "description": "Organization-wide defaults and reusable workflows for TheRadicalOnes.",
+  "scripts": {
+    "standards:test": "node --test code-standards/scripts/check-new-files.test.mjs code-standards/scripts/check-pmd.test.mjs code-standards/scripts/rules.test.mjs && node code-standards/scripts/rule-reference.mjs --check && node code-standards/scripts/test-ruleset.mjs",
+    "standards:pmd": "node code-standards/scripts/check-pmd.mjs",
+    "standards:new-files": "node code-standards/scripts/check-new-files.mjs",
+    "standards:rules": "node code-standards/scripts/rule-reference.mjs --write"
+  }
+}

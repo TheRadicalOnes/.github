@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
+  >R1_Amount_Positive</fullName><active>true</active><description
+  >Fixture rule.</description><errorConditionFormula
+  >R1_Amount__c &lt; 0</errorConditionFormula><errorDisplayField
+  >R1_Amount__c</errorDisplayField><errorMessage
+  >Fixture.</errorMessage></ValidationRule>

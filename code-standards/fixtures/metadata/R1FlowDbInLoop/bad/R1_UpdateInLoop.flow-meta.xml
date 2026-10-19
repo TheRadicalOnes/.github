@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+<description>Fixture flow.</description>
+<label>Fixture</label>
+
+<loops><name>Loop_Leads</name><nextValueConnector><targetReference
+      >Is_Hot</targetReference></nextValueConnector><noMoreValuesConnector
+    ><targetReference
+      >Update_Leads</targetReference></noMoreValuesConnector></loops><decisions
+  ><name>Is_Hot</name><defaultConnector><targetReference
+      >Loop_Leads</targetReference></defaultConnector><rules><name
+      >Hot</name><connector><targetReference
+        >Update_Lead</targetReference></connector></rules></decisions><recordUpdates
+  ><name>Update_Lead</name><connector><targetReference
+      >Loop_Leads</targetReference></connector><faultConnector><targetReference
+      >Log_Error</targetReference></faultConnector></recordUpdates><recordUpdates
+  ><name>Update_Leads</name><faultConnector><targetReference
+      >Log_Error</targetReference></faultConnector></recordUpdates>
+</Flow>

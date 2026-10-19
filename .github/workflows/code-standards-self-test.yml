@@ -1,0 +1,60 @@
+# Tests the code standards check itself: unit tests of the scripts and the ruleset against its fixtures
+# (every bad fixture must report its rule and no good fixture may). Runs on changes to code-standards/.
+name: Code Standards self-test
+
+on:
+  pull_request:
+    paths:
+      - code-standards/**
+      - package.json
+      - .github/workflows/code-standards.yml
+      - .github/workflows/code-standards-self-test.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-standards-self-test-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Code standards self-test
+    runs-on: ubuntu-latest
+    env:
+      PMD_VERSION: "7.22.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Cache PMD
+        id: pmd-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.pmd/pmd-bin-${{ env.PMD_VERSION }}
+          key: pmd-${{ env.PMD_VERSION }}
+
+      - name: Install PMD
+        if: steps.pmd-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.pmd
+          curl -fsSL -o "$RUNNER_TEMP/pmd.zip" \
+            "https://github.com/pmd/pmd/releases/download/pmd_releases%2F${PMD_VERSION}/pmd-dist-${PMD_VERSION}-bin.zip"
+          unzip -q "$RUNNER_TEMP/pmd.zip" -d ~/.pmd
+
+      - name: Tests and fixtures
+        run: |
+          export PMD_BIN="$HOME/.pmd/pmd-bin-${PMD_VERSION}/bin/pmd"
+          npm run standards:test

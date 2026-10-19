@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
+  >R1_AssignedTruck__c</fullName><description>Fixture field.</description><label
+  >Fixture</label><type>Lookup</type><referenceTo
+  >R1_AssignedTruck__c</referenceTo></CustomField>
