@@ -36,7 +36,26 @@ test("describeFinding adds the PMD docs link when the finding has one", () => {
       message: "Missing ApexDoc comment",
       docsUrl: "https://docs.pmd-code.org/apexdoc"
     }),
-    "Missing ApexDoc comment\nConventions: VII Rule 3 · Rule reference: https://github.com/TheRadicalOnes/.github/blob/v1/code-standards/README.md#comments · PMD docs: https://docs.pmd-code.org/apexdoc"
+    "Missing ApexDoc comment\n\nConventions: VII Rule 3 · Rule reference: https://github.com/TheRadicalOnes/.github/blob/v1/code-standards/README.md#comments · PMD docs: https://docs.pmd-code.org/apexdoc"
+  );
+});
+
+test("describeFinding puts the PMD details between the message and the links", () => {
+  process.env.STANDARDS_REF = "v1";
+
+  assert.equal(
+    describeFinding({
+      rule: "EmptyCatchBlock",
+      message: "Avoid empty catch blocks",
+      details:
+        "Empty Catch Block finds instances where an exception is caught, but nothing is done.",
+      docsUrl: "https://docs.pmd-code.org/emptycatchblock"
+    }),
+    [
+      "Avoid empty catch blocks",
+      "Empty Catch Block finds instances where an exception is caught, but nothing is done.",
+      "Conventions: III Rule 5 · Rule reference: https://github.com/TheRadicalOnes/.github/blob/v1/code-standards/README.md#error-handling · PMD docs: https://docs.pmd-code.org/emptycatchblock"
+    ].join("\n\n")
   );
 });
 
@@ -48,7 +67,7 @@ test("describeFinding adds the section and the link to known rules only", () => 
       rule: "ApexCRUDViolation",
       message: "Enforce user mode."
     }),
-    "Enforce user mode.\nConventions: III Rule 3 · Rule reference: https://github.com/TheRadicalOnes/.github/blob/v1/code-standards/README.md#security"
+    "Enforce user mode.\n\nConventions: III Rule 3 · Rule reference: https://github.com/TheRadicalOnes/.github/blob/v1/code-standards/README.md#security"
   );
   assert.equal(
     describeFinding({ rule: "UnknownRule", message: "Something." }),

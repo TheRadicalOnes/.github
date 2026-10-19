@@ -16,6 +16,7 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { printFindings } from "./annotations.mjs";
+import { RULES } from "./rules.mjs";
 
 // The ruleset has Apex and XML (Flow, Validation Rule, field) rules only.
 const ANALYZED_EXTENSIONS = [".cls", ".trigger", ".xml"];
@@ -86,6 +87,72 @@ export const parseChangedLines = (diff) => {
   return linesByFile;
 };
 
+// Longest PMD rule description shown in an annotation; the PMD docs link has the rest.
+const MAX_DETAILS = 1000;
+
+const stripMarkdown = (text) =>
+  text
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/(^|\s)[*_]([^*_\s][^*_]*)[*_](?=\s|[.,;:]|$)/g, "$1$2");
+
+// Joins the lines of a paragraph; list items stay one per line, with their wrapped lines joined to them.
+const joinLines = (paragraph) =>
+  paragraph
+    .split("\n")
+    .reduce((items, line) => {
+      if (/^[*-]\s+/.test(line)) {
+        return [...items, line.replace(/^[*-]\s+/, "- ")];
+      }
+      if (items.length === 0) {
+        return [line];
+      }
+      return [...items.slice(0, -1), `${items.at(-1)} ${line}`];
+    }, [])
+    .join("\n");
+
+/**
+ * Turns a PMD rule description (Markdown) into plain text for an annotation: keeps the explanatory paragraphs,
+ * stops where the rule's configuration (properties) or a code example starts, removes Markdown syntax and cuts
+ * the text at MAX_DETAILS characters.
+ */
+export const cleanDescription = (markdown) => {
+  const paragraphs = String(markdown ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .join("\n")
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  const kept = [];
+  for (const paragraph of paragraphs) {
+    if (paragraph.includes("```") || /propert(y|ies)/i.test(paragraph)) {
+      break;
+    }
+    kept.push(paragraph);
+  }
+  while (kept.length && kept.at(-1).endsWith(":")) {
+    kept.pop();
+  }
+
+  const chosen = kept.length
+    ? kept
+    : paragraphs.filter((paragraph) => !paragraph.includes("```"));
+  const text = chosen
+    .map(joinLines)
+    .map(stripMarkdown)
+    .map((paragraph) => paragraph.replace(/[ \t]+/g, " ").trim())
+    .join("\n");
+
+  if (text.length <= MAX_DETAILS) {
+    return text;
+  }
+  const cut = text.slice(0, MAX_DETAILS);
+  return `${cut.slice(0, Math.max(cut.lastIndexOf(" "), MAX_DETAILS - 50)).trimEnd()}…`;
+};
+
 /**
  * Converts a PMD SARIF report to findings with repository-relative paths.
  * @param {object} sarif The SARIF report.
@@ -93,11 +160,20 @@ export const parseChangedLines = (diff) => {
  */
 export const toFindings = (sarif, root) =>
   (sarif?.runs ?? []).flatMap((run) => {
-    // PMD documents built-in rules; custom XPath rules have no help link.
-    const docsByRule = new Map(
+    // PMD documents built-in rules (help link and description); custom XPath rules have no help link.
+    const builtInRules = new Map(
       (run.tool?.driver?.rules ?? [])
         .filter((rule) => rule.helpUri)
-        .map((rule) => [rule.id, rule.helpUri])
+        .map((rule) => [
+          rule.id,
+          {
+            docsUrl: rule.helpUri,
+            // rules.mjs can replace PMD's text when it does not match how the rule is configured here.
+            details:
+              RULES[rule.id]?.details ??
+              cleanDescription(rule.fullDescription?.text)
+          }
+        ])
     );
 
     return (run.results ?? []).map((result) => {
@@ -108,7 +184,7 @@ export const toFindings = (sarif, root) =>
         : uri;
       const line = location?.region?.startLine ?? 1;
 
-      const docsUrl = docsByRule.get(result.ruleId);
+      const builtIn = builtInRules.get(result.ruleId);
 
       return {
         file: toPosix(path),
@@ -117,7 +193,8 @@ export const toFindings = (sarif, root) =>
         rule: result.ruleId,
         severity: result.level === "error" ? "error" : "warning",
         message: result.message?.text ?? "",
-        ...(docsUrl ? { docsUrl } : {})
+        ...(builtIn?.docsUrl ? { docsUrl: builtIn.docsUrl } : {}),
+        ...(builtIn?.details ? { details: builtIn.details } : {})
       };
     });
   });

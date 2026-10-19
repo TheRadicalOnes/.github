@@ -1,5 +1,6 @@
 // Catalog of every code standards rule: category, what it checks and the section of the Code Conventions it
-// comes from. Used by the annotations, the Job Summary and the rule reference in code-standards/README.md.
+// comes from. An optional `details` replaces PMD's description in annotations when PMD's text does not match how
+// the rule is configured here. Used by the annotations, the Job Summary and the rule reference in code-standards/README.md.
 // A new rule (in ruleset.xml or check-new-files.mjs) needs an entry here; the tests fail until it has one.
 
 export const CATEGORIES = [
@@ -340,7 +341,10 @@ export const RULES = {
   ApexDoc: {
     category: "Comments",
     checks: "ApexDoc header on every class (method comments are optional)",
-    section: "VII Rule 3"
+    section: "VII Rule 3",
+    // PMD's own description asks for method and property comments, which are optional in the R1 conventions.
+    details:
+      "Every class needs an ApexDoc header above its declaration that explains why the class exists. A description at the top of the comment is enough; the @description tag is optional. Method and property comments are optional in the R1 conventions: add them only when they add value."
   },
   R1NoAuthorTags: {
     category: "Comments",

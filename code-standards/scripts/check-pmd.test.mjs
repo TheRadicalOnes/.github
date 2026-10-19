@@ -5,10 +5,12 @@ import { test } from "node:test";
 
 import {
   classifyFindings,
+  cleanDescription,
   parseChangedLines,
   parseNameStatus,
   toFindings
 } from "./check-pmd.mjs";
+import { RULES } from "./rules.mjs";
 
 const finding = (
   file,
@@ -71,7 +73,7 @@ test("parseChangedLines reads the added lines of each hunk", () => {
   assert.deepEqual([...parseChangedLines(diff).get("a/Old.cls")], [11, 12, 22]);
 });
 
-test("toFindings maps SARIF levels to severities and keeps the PMD docs link", () => {
+test("toFindings maps SARIF levels to severities and keeps the PMD docs link and details", () => {
   const sarif = {
     runs: [
       {
@@ -123,7 +125,8 @@ test("toFindings maps SARIF levels to severities and keeps the PMD docs link", (
       rule: "ApexDoc",
       severity: "error",
       message: "Missing ApexDoc comment",
-      docsUrl: "https://docs.pmd-code.org/apexdoc"
+      docsUrl: "https://docs.pmd-code.org/apexdoc",
+      details: RULES.ApexDoc.details
     },
     {
       file: "a/Old.cls",
@@ -220,4 +223,47 @@ test("findings of a renamed file are compared with its old path", () => {
   });
 
   assert.deepEqual(statuses(result), ["1:ApexDoc:existing"]);
+});
+
+test("cleanDescription keeps the explanation and drops configuration and Markdown", () => {
+  const markdown = [
+    "",
+    "    The rule validates `WITH USER_MODE` usage before a SOQL operation.",
+    "    Since Apex runs in **system mode**, see [the docs](https://example.com).",
+    "",
+    "    By default the rule can be configured via the following properties:",
+    "",
+    "    * `createAuthMethodPattern` - a pattern",
+    "",
+    "    ```xml",
+    '    <rule ref="x"/>',
+    "    ```"
+  ].join("\n");
+
+  assert.equal(
+    cleanDescription(markdown),
+    "The rule validates WITH USER_MODE usage before a SOQL operation. Since Apex runs in system mode, see the docs."
+  );
+});
+
+test("cleanDescription keeps wrapped list items on one line", () => {
+  const markdown = [
+    "This rule validates:",
+    "",
+    "* first item that",
+    "  wraps",
+    "* second item"
+  ].join("\n");
+
+  assert.equal(
+    cleanDescription(markdown),
+    "This rule validates:\n- first item that wraps\n- second item"
+  );
+});
+
+test("cleanDescription cuts long text at 1000 characters", () => {
+  const text = cleanDescription(`${"word ".repeat(400)}end`);
+
+  assert.ok(text.length <= 1001, `got ${text.length} characters`);
+  assert.ok(text.endsWith("…"));
 });
