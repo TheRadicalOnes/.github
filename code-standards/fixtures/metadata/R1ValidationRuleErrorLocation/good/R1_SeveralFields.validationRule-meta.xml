@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
+  >R1_Dates_InOrder</fullName><active>true</active><description
+  >Fixture rule.</description><errorConditionFormula
+  >R1_EndDate__c &lt; R1_StartDate__c</errorConditionFormula><errorMessage
+  >Fixture.</errorMessage></ValidationRule>

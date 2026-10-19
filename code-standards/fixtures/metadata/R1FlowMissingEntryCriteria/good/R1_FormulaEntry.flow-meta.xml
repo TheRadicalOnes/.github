@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+<description>Fixture flow.</description>
+<label>Fixture</label>
+<start><object>Lead</object><triggerType
+    >RecordAfterSave</triggerType><filterFormula
+    >NOT({!$Permission.R1_BypassTriggers})</filterFormula></start>
+
+</Flow>

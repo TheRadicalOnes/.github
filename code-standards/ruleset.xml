@@ -1,0 +1,995 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ruleset
+  name="R1 Code Conventions"
+  xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd"
+>
+  <description>
+    Radical One code conventions for Apex. Based on the shared radicalDNA ruleset, with the thresholds and rules of
+    the "Code Conventions and Guidelines" document. Priority 1 = error (Must), priority 3 = warning (Should).
+    Thresholds are inclusive: a rule reports when the value is greater than or equal to the configured level, so a
+    limit of "10 or less" is configured as 11. Metrics have two copies: the limit (error) and the Target (warning).
+  </description>
+
+  <!-- ======================================================================= -->
+  <!-- I. General Guidelines: complexity thresholds and code metrics           -->
+  <!-- ======================================================================= -->
+
+  <rule ref="category/apex/design.xml/CyclomaticComplexity">
+    <priority>1</priority>
+    <properties>
+      <property name="methodReportLevel" value="11" />
+      <property name="classReportLevel" value="81" />
+    </properties>
+  </rule>
+
+  <rule
+    name="CyclomaticComplexityTarget"
+    language="apex"
+    class="net.sourceforge.pmd.lang.apex.rule.design.CyclomaticComplexityRule"
+    message="The {0} ''{1}'' has a{2} cyclomatic complexity of {3} (target: 7 per method, 40 per class)."
+    externalInfoUrl="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#cyclomaticcomplexity"
+  >
+    <description
+    >Cyclomatic complexity above the target of the R1 conventions.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="methodReportLevel" value="8" />
+      <property name="classReportLevel" value="41" />
+    </properties>
+  </rule>
+
+  <!-- The conventions only set a method limit for cognitive complexity. -->
+  <rule ref="category/apex/design.xml/CognitiveComplexity">
+    <priority>1</priority>
+    <properties>
+      <property name="methodReportLevel" value="16" />
+      <property name="classReportLevel" value="999" />
+    </properties>
+  </rule>
+
+  <rule
+    name="CognitiveComplexityTarget"
+    language="apex"
+    class="net.sourceforge.pmd.lang.apex.rule.design.CognitiveComplexityRule"
+    message="The {0} ''{1}'' has a{2} cognitive complexity of {3} (target: {4})."
+    externalInfoUrl="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#cognitivecomplexity"
+  >
+    <description
+    >Cognitive complexity above the target of the R1 conventions.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="methodReportLevel" value="11" />
+      <property name="classReportLevel" value="999" />
+    </properties>
+  </rule>
+
+  <!-- Lines of code. Test classes have their own class limit: the class-level violation is suppressed here for
+       test classes and reported by the NcssCountTestClass rules. -->
+  <rule ref="category/apex/design.xml/NcssCount">
+    <priority>1</priority>
+    <properties>
+      <property name="methodReportLevel" value="51" />
+      <property name="classReportLevel" value="501" />
+      <property
+        name="violationSuppressXPath"
+        value="./self::UserClass[ModifierNode/Annotation[lower-case(@Name) = 'istest']]"
+      />
+    </properties>
+  </rule>
+
+  <rule
+    name="NcssCountTarget"
+    language="apex"
+    class="net.sourceforge.pmd.lang.apex.rule.design.NcssCountRule"
+    message="The {0} ''{1}'' has a NCSS line count of {2} (target: {3})."
+    externalInfoUrl="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#ncsscount"
+  >
+    <description
+    >Lines of code above the target of the R1 conventions.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="methodReportLevel" value="31" />
+      <property name="classReportLevel" value="301" />
+      <property
+        name="violationSuppressXPath"
+        value="./self::UserClass[ModifierNode/Annotation[lower-case(@Name) = 'istest']]"
+      />
+    </properties>
+  </rule>
+
+  <rule
+    name="NcssCountTestClass"
+    language="apex"
+    class="net.sourceforge.pmd.lang.apex.rule.design.NcssCountRule"
+    message="The test {0} ''{1}'' has a NCSS line count of {2} (limit: {3})."
+    externalInfoUrl="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#ncsscount"
+  >
+    <description
+    >Lines of code of a test class above the limit of the R1 conventions.</description>
+    <priority>1</priority>
+    <properties>
+      <property name="methodReportLevel" value="100000" />
+      <property name="classReportLevel" value="1001" />
+      <property
+        name="violationSuppressXPath"
+        value="./self::UserClass[not(ModifierNode/Annotation[lower-case(@Name) = 'istest'])]"
+      />
+    </properties>
+  </rule>
+
+  <rule
+    name="NcssCountTestClassTarget"
+    language="apex"
+    class="net.sourceforge.pmd.lang.apex.rule.design.NcssCountRule"
+    message="The test {0} ''{1}'' has a NCSS line count of {2} (target: {3})."
+    externalInfoUrl="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#ncsscount"
+  >
+    <description
+    >Lines of code of a test class above the target of the R1 conventions.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="methodReportLevel" value="100000" />
+      <property name="classReportLevel" value="501" />
+      <property
+        name="violationSuppressXPath"
+        value="./self::UserClass[not(ModifierNode/Annotation[lower-case(@Name) = 'istest'])]"
+      />
+    </properties>
+  </rule>
+
+  <rule ref="category/apex/design.xml/ExcessiveParameterList">
+    <priority>1</priority>
+    <properties>
+      <property name="minimum" value="5" />
+    </properties>
+  </rule>
+
+  <rule
+    name="ExcessiveParameterListTarget"
+    language="apex"
+    class="net.sourceforge.pmd.lang.apex.rule.design.ExcessiveParameterListRule"
+    message="Avoid long parameter lists ({0} parameters - target is 3)."
+    externalInfoUrl="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#excessiveparameterlist"
+  >
+    <description
+    >More parameters than the target of the R1 conventions.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="minimum" value="4" />
+    </properties>
+  </rule>
+
+  <rule
+    ref="category/apex/design.xml/TooManyFields"
+    message="Too many fields (limit: 15)"
+  >
+    <priority>1</priority>
+    <properties>
+      <property name="maxfields" value="15" />
+    </properties>
+  </rule>
+
+  <rule
+    name="TooManyFieldsTarget"
+    language="apex"
+    class="net.sourceforge.pmd.lang.apex.rule.design.TooManyFieldsRule"
+    message="Too many fields (target: 10)"
+    externalInfoUrl="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#toomanyfields"
+  >
+    <description
+    >More fields than the target of the R1 conventions.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="maxfields" value="10" />
+    </properties>
+  </rule>
+
+  <rule
+    ref="category/apex/design.xml/AvoidDeeplyNestedIfStmts"
+    message="Deeply nested if statements are hard to read (limit: 3 levels)"
+  >
+    <priority>1</priority>
+    <properties>
+      <property name="problemDepth" value="4" />
+    </properties>
+  </rule>
+
+  <rule
+    name="AvoidDeeplyNestedIfStmtsTarget"
+    language="apex"
+    class="net.sourceforge.pmd.lang.apex.rule.design.AvoidDeeplyNestedIfStmtsRule"
+    message="Deeply nested if statements are hard to read (target: 2 levels)"
+    externalInfoUrl="https://docs.pmd-code.org/latest/pmd_rules_apex_design.html#avoiddeeplynestedifstmts"
+  >
+    <description
+    >Nesting deeper than the target of the R1 conventions.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="problemDepth" value="3" />
+    </properties>
+  </rule>
+
+  <rule
+    name="R1TooManyMethods"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="This class has too many methods (limit: 25). Split it by responsibility."
+  >
+    <description>
+      Counts the methods declared in a class, excluding constructors. Conventions: "Complexity thresholds and code
+      metrics", methods per class.
+    </description>
+    <priority>1</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//UserClass[count(Method[@Constructor = false() and @StaticInitializer = false()]) >= 26]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1TooManyMethodsTarget"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="This class has many methods (target: 15). Consider splitting it by responsibility."
+  >
+    <description
+    >Methods per class above the target of the R1 conventions.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//UserClass[count(Method[@Constructor = false() and @StaticInitializer = false()]) >= 16]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <!-- I. General Guidelines: braces, dead code, debuggability -->
+
+  <rule ref="category/apex/codestyle.xml/IfStmtsMustUseBraces">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/codestyle.xml/IfElseStmtsMustUseBraces">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/codestyle.xml/ForLoopsMustUseBraces">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/codestyle.xml/WhileLoopsMustUseBraces">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/codestyle.xml/OneDeclarationPerLine">
+    <priority>3</priority>
+  </rule>
+
+  <rule ref="category/apex/bestpractices.xml/UnusedLocalVariable">
+    <priority>1</priority>
+  </rule>
+  <!-- Warning only: methods called from LWC, Flows or Type.forName look unused to PMD. -->
+  <rule ref="category/apex/design.xml/UnusedMethod">
+    <priority>3</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/EmptyIfStmt">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/EmptyWhileStmt">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/EmptyTryOrFinallyBlock">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/EmptyStatementBlock">
+    <priority>3</priority>
+  </rule>
+
+  <rule ref="category/apex/bestpractices.xml/DebugsShouldUseLoggingLevel">
+    <priority>3</priority>
+  </rule>
+
+  <!-- ======================================================================= -->
+  <!-- II. Apex Triggers                                                       -->
+  <!-- ======================================================================= -->
+
+  <rule ref="category/apex/bestpractices.xml/AvoidLogicInTrigger">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/AvoidDirectAccessTriggerMap">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/performance.xml/OperationWithLimitsInLoop">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/performance.xml/OperationWithHighCostInLoop">
+    <priority>3</priority>
+  </rule>
+
+  <!-- Handlers on objects of a managed package with its own framework (e.g. Fonteva, Framework.*) are excluded. -->
+  <rule
+    name="R1HandlerExtendsBase"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Trigger handlers should extend R1_TriggerHandler."
+  >
+    <description>
+      Every trigger handler extends the team's base class, unless the object belongs to a managed package that ships
+      its own trigger framework. Conventions: II. Apex Triggers, Rule 3.
+    </description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//UserClass
+  [@Nested = false()]
+  [ends-with(@SimpleName, 'TriggerHandler')]
+  [@SimpleName != 'R1_TriggerHandler']
+  [not(@SuperClassName = 'R1_TriggerHandler')]
+  [not(starts-with(lower-case(@SuperClassName), 'framework.'))]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <!-- ======================================================================= -->
+  <!-- III. Apex Code Standards                                                -->
+  <!-- ======================================================================= -->
+
+  <rule ref="category/apex/security.xml/ApexSharingViolations">
+    <priority>1</priority>
+  </rule>
+
+  <!-- Custom metadata types are readable by every user, so their queries need no CRUD check. -->
+  <rule ref="category/apex/security.xml/ApexCRUDViolation">
+    <priority>1</priority>
+    <properties>
+      <property
+        name="violationSuppressXPath"
+        value="./descendant-or-self::SoqlExpression[matches(@Query, '\sfrom\s+[A-Za-z0-9_]+__mdt(\s|$)', 'i')]"
+      />
+    </properties>
+  </rule>
+
+  <rule ref="category/apex/security.xml/ApexSOQLInjection">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/security.xml/ApexSuggestUsingNamedCred">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/security.xml/ApexInsecureEndpoint">
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/ApexCSRF">
+    <priority>1</priority>
+  </rule>
+
+  <!-- Test classes may build fake Ids (key prefix + zeros) that never exist in an org. -->
+  <rule ref="category/apex/errorprone.xml/AvoidHardcodingId">
+    <priority>1</priority>
+    <properties>
+      <property
+        name="violationSuppressXPath"
+        value="./ancestor::UserClass[ModifierNode/Annotation[lower-case(@Name) = 'istest']]"
+      />
+    </properties>
+  </rule>
+
+  <rule ref="category/apex/performance.xml/AvoidNonRestrictiveQueries">
+    <priority>3</priority>
+  </rule>
+
+  <rule
+    name="R1SoqlOnlyInSelector"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Move this query to a selector class (*Selector)."
+  >
+    <description>
+      Every SOQL or SOSL query of an object lives in its selector class, so each query is written once. Test classes
+      are excluded. Conventions: III. Apex Code Standards, Rule 1.
+    </description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+(
+  //SoqlExpression
+  | //SoslExpression
+  | //MethodCallExpression[lower-case(@FullMethodName) = (
+      'database.query', 'database.querywithbinds', 'database.getquerylocator',
+      'database.getquerylocatorwithbinds', 'database.countquery', 'database.countquerywithbinds', 'search.query'
+    )]
+)
+  [not(ancestor::UserClass[last()][ends-with(@SimpleName, 'Selector')])]
+  [not(ancestor::UserClass[ModifierNode/Annotation[lower-case(@Name) = 'istest']])]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule ref="category/apex/errorprone.xml/EmptyCatchBlock">
+    <priority>1</priority>
+    <properties>
+      <property name="allowCommentedBlocks" value="false" />
+      <property name="allowExceptionNameRegex" value="^(ignored|expected)$" />
+    </properties>
+  </rule>
+
+  <rule
+    name="R1AuraExceptionSetMessage"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Call setMessage on the AuraHandledException before throwing it."
+  >
+    <description>
+      Without setMessage, getMessage() returns "Script-thrown exception", which hides the real message in logs and
+      tests. Conventions: III. Apex Code Standards, Rule 5.
+    </description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//ThrowStatement/NewObjectExpression[lower-case(@Type) = 'aurahandledexception']
+| //VariableDeclaration
+    [NewObjectExpression[lower-case(@Type) = 'aurahandledexception']]
+    [
+      let $name := @Image
+      return not(
+        ancestor::Method[1]//MethodCallExpression
+          [lower-case(@MethodName) = 'setmessage']
+          [ReferenceExpression/@Image = $name]
+      )
+    ]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule ref="category/apex/bestpractices.xml/AvoidFutureAnnotation">
+    <priority>3</priority>
+  </rule>
+  <rule ref="category/apex/bestpractices.xml/QueueableWithoutFinalizer">
+    <priority>3</priority>
+  </rule>
+
+  <!-- Warning only: global is sometimes required (managed packages, some integrations). -->
+  <rule ref="category/apex/bestpractices.xml/AvoidGlobalModifier">
+    <priority>3</priority>
+  </rule>
+
+  <!-- Tests -->
+
+  <!-- Helper methods named assert... (e.g. assertPlanFails) count as assertions. -->
+  <rule
+    ref="category/apex/bestpractices.xml/ApexUnitTestClassShouldHaveAsserts"
+  >
+    <priority>1</priority>
+    <properties>
+      <property
+        name="additionalAssertMethodPattern"
+        value="(?i)(\w+\.)?assert\w*"
+      />
+    </properties>
+  </rule>
+  <rule
+    ref="category/apex/bestpractices.xml/ApexAssertionsShouldIncludeMessage"
+  >
+    <priority>1</priority>
+  </rule>
+  <rule
+    ref="category/apex/bestpractices.xml/ApexUnitTestShouldNotUseSeeAllDataTrue"
+  >
+    <priority>1</priority>
+  </rule>
+  <rule
+    ref="category/apex/bestpractices.xml/ApexUnitTestMethodShouldHaveIsTestAnnotation"
+  >
+    <priority>1</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/TestMethodsMustBeInTestClasses">
+    <priority>3</priority>
+  </rule>
+
+  <rule
+    name="R1UseAssertClass"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Use the Assert class (Assert.areEqual, Assert.isTrue...) instead of System.assert methods."
+  >
+    <description
+    >Tests use the Assert class. Conventions: III. Apex Code Standards, Rule 8.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//MethodCallExpression[lower-case(@FullMethodName) = ('system.assert', 'system.assertequals', 'system.assertnotequals')]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <!-- ======================================================================= -->
+  <!-- IV. Naming Conventions                                                  -->
+  <!-- In-code naming is a warning: PMD cannot tell new files from modified    -->
+  <!-- ones. The R1_ prefix on new files is checked by check-new-files.mjs.    -->
+  <!-- ======================================================================= -->
+
+  <rule ref="category/apex/codestyle.xml/ClassNamingConventions">
+    <priority>3</priority>
+    <properties>
+      <property name="testClassPattern" value="[A-Z][a-zA-Z0-9_]*" />
+      <property name="abstractClassPattern" value="[A-Z][a-zA-Z0-9_]*" />
+      <property name="classPattern" value="[A-Z][a-zA-Z0-9_]*" />
+      <property name="interfacePattern" value="[A-Z][a-zA-Z0-9_]*" />
+      <property name="enumPattern" value="[A-Z][a-zA-Z0-9_]*" />
+      <property name="innerClassPattern" value="[A-Z][a-zA-Z0-9_]*" />
+      <property name="innerInterfacePattern" value="[A-Z][a-zA-Z0-9_]*" />
+    </properties>
+  </rule>
+
+  <rule ref="category/apex/codestyle.xml/MethodNamingConventions">
+    <priority>3</priority>
+    <properties>
+      <!-- Both should<Behavior>_When<Condition> and should<Behavior>When<Condition> are valid. -->
+      <property
+        name="testPattern"
+        value="should[A-Z][a-zA-Z0-9]*_?When[A-Z][a-zA-Z0-9]*"
+      />
+      <property name="staticPattern" value="[a-z][a-zA-Z0-9]*" />
+      <property name="instancePattern" value="[a-z][a-zA-Z0-9]*" />
+    </properties>
+  </rule>
+
+  <rule ref="category/apex/codestyle.xml/FieldNamingConventions">
+    <priority>3</priority>
+    <properties>
+      <property name="enumConstantPattern" value="[A-Z][A-Z0-9_]*" />
+      <property name="constantPattern" value="[A-Z][A-Z0-9_]*" />
+      <property name="finalPattern" value="[a-z][a-zA-Z0-9]*" />
+      <property name="staticPattern" value="[a-z][a-zA-Z0-9]*" />
+      <property name="instancePattern" value="[a-z][a-zA-Z0-9]*" />
+    </properties>
+  </rule>
+
+  <rule ref="category/apex/codestyle.xml/FormalParameterNamingConventions">
+    <priority>3</priority>
+  </rule>
+  <rule ref="category/apex/codestyle.xml/LocalVariableNamingConventions">
+    <priority>3</priority>
+  </rule>
+  <rule ref="category/apex/codestyle.xml/PropertyNamingConventions">
+    <priority>3</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/MethodWithSameNameAsEnclosingClass">
+    <priority>3</priority>
+  </rule>
+  <rule ref="category/apex/errorprone.xml/AvoidNonExistentAnnotations">
+    <priority>3</priority>
+  </rule>
+
+  <!-- Inner interfaces and enums are elements of a component, so they do not carry the prefix. -->
+  <rule
+    name="R1InterfaceNaming"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Interfaces start with R1_I followed by the behavior in Pascal Case, for example R1_INotifiable."
+  >
+    <description>Conventions: IV. Naming Conventions, Rule 11.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//UserInterface[@Nested = false()][not(matches(@SimpleName, '^R1_I[A-Z][A-Za-z0-9]*$'))]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1EnumNaming"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Enums start with R1_ followed by a singular name in Pascal Case, for example R1_Priority."
+  >
+    <description>Conventions: IV. Naming Conventions, Rule 11.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//UserEnum[@Nested = false()][not(matches(@SimpleName, '^R1_[A-Z][A-Za-z0-9]*$'))]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <!-- ======================================================================= -->
+  <!-- VII. Code Commenting                                                    -->
+  <!-- Only the class header is required. Method comments are optional (May),  -->
+  <!-- so method and property violations are suppressed.                       -->
+  <!-- ======================================================================= -->
+
+  <rule ref="category/apex/documentation.xml/ApexDoc">
+    <priority>1</priority>
+    <properties>
+      <property name="reportMissingDescription" value="false" />
+      <property name="reportPrivate" value="false" />
+      <property name="reportProtected" value="false" />
+      <property name="reportProperty" value="false" />
+      <property
+        name="violationSuppressXPath"
+        value="./self::Method | ./self::Property"
+      />
+    </properties>
+  </rule>
+
+  <rule
+    name="R1NoAuthorTags"
+    language="apex"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Remove @author, @date, @company and @changes from ApexDoc: Git already records them."
+  >
+    <description>Conventions: VII. Code Commenting, Rule 3.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//*[FormalComment[matches(@Image, '@(author|date|company|changes)([^a-z]|$)', 'i')]]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <!-- ======================================================================= -->
+  <!-- V. Flows, VI. Validation Rules and custom fields (metadata XML)         -->
+  <!-- PMD exposes element text as text/@Text, so values are read with         -->
+  <!-- string-join(element/text/@Text, ''). Rules start with // and navigate   -->
+  <!-- relatively (ancestor::Flow): absolute paths inside predicates are not   -->
+  <!-- resolved by PMD.                                                        -->
+  <!-- ======================================================================= -->
+
+  <rule
+    name="R1FlowMissingFaultPath"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Add a fault path to this element and log or notify the error."
+  >
+    <description>
+      Get, Create, Update and Delete Records and Action elements need a fault path. Conventions: V. Flows, Rule 6.
+    </description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//(recordLookups | recordCreates | recordUpdates | recordDeletes | actionCalls)[parent::Flow][not(faultConnector)]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FlowMissingDescription"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Add a description to the Flow."
+  >
+    <description>Conventions: V. Flows, Rule 6.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//Flow[normalize-space(string-join(description/text/@Text, '')) = '']
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FlowMissingEntryCriteria"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Define entry conditions so the record-triggered Flow only runs when it is needed."
+  >
+    <description>Conventions: V. Flows, Rule 5.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//Flow/start
+  [triggerType/text/@Text = ('RecordBeforeSave', 'RecordAfterSave', 'RecordBeforeDelete')]
+  [not(filters)]
+  [normalize-space(string-join(filterFormula/text/@Text, '')) = '']
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FlowBypassPermission"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Add NOT($Permission.R1_BypassTriggers) to the entry condition formula so the Flow can be skipped during data migrations."
+  >
+    <description>Conventions: V. Flows, Rule 6.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//Flow/start
+  [triggerType/text/@Text = ('RecordBeforeSave', 'RecordAfterSave', 'RecordBeforeDelete')]
+  [not(contains(string-join(filterFormula/text/@Text, ''), '$Permission.R1_BypassTriggers'))]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FlowTooManyElements"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="This Flow has more than 50 elements. Split it into subflows."
+  >
+    <description>Conventions: V. Flows, Rule 5.</description>
+    <priority>1</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//Flow[
+  count(
+    actionCalls | apexPluginCalls | assignments | collectionProcessors | customErrors | decisions | loops
+    | orchestratedStages | recordCreates | recordDeletes | recordLookups | recordRollbacks | recordUpdates
+    | screens | steps | subflows | transforms | waits
+  ) > 50
+]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <!-- Walks the elements reachable from each loop's "for each item" connector until it returns to the loop. -->
+  <rule
+    name="R1FlowDbInLoop"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Move this Get/Create/Update/Delete Records element out of the loop: collect the records and run one operation after it."
+  >
+    <description>Conventions: V. Flows, Rule 5.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//(recordLookups | recordCreates | recordUpdates | recordDeletes)[parent::Flow][
+  let $flow := ancestor::Flow,
+      $me := string(name/text/@Text),
+      $walk := function($self, $frontier, $seen) {
+        if (empty($frontier)) then $seen
+        else
+          let $visited := distinct-values(($seen, $frontier)),
+              $next := distinct-values(
+                for $element in $flow/*
+                return
+                  if ($element/name/text/@Text = $frontier)
+                  then $element//targetReference/text/@Text ! string(.)
+                  else ()
+              )[not(. = $visited)]
+          return $self($self, $next, $visited)
+      }
+  return
+    some $loop in $flow/loops
+    satisfies $me = $walk(
+      $walk,
+      string($loop/nextValueConnector/targetReference/text/@Text),
+      string($loop/name/text/@Text)
+    )
+]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FlowResourceNaming"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Name Flow resources with their type prefix (varB_, varT_, forN_, con_, textT_, choice_...)."
+  >
+    <description
+    >Conventions: V. Flows, Rule 3. The recordId variable is exempt because Flow requires that name.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//variables[parent::Flow][
+  let $name := string(name/text/@Text),
+      $prefix := map {
+        'Boolean': 'varB_', 'Currency': 'varC_', 'Date': 'varD_', 'DateTime': 'varDT_',
+        'Multipicklist': 'varMSP_', 'Number': 'varN_', 'Picklist': 'varP_', 'SObject': 'varR_', 'String': 'varT_'
+      }(string(dataType/text/@Text))
+  return $name != 'recordId' and exists($prefix) and not(starts-with($name, $prefix))
+]
+| //formulas[parent::Flow][
+  let $prefix := map {
+        'Boolean': 'forB_', 'Currency': 'forC_', 'Date': 'forD_', 'DateTime': 'forDT_', 'Number': 'forN_',
+        'String': 'forT_'
+      }(string(dataType/text/@Text))
+  return exists($prefix) and not(starts-with(string(name/text/@Text), $prefix))
+]
+| //constants[parent::Flow][not(starts-with(string(name/text/@Text), 'con_'))]
+| //textTemplates[parent::Flow][not(starts-with(string(name/text/@Text), 'textT_'))]
+| //choices[parent::Flow][not(starts-with(string(name/text/@Text), 'choice_'))]
+| //dynamicChoiceSets[parent::Flow][
+  let $prefix := if (picklistField) then 'picChoice_' else if (collectionReference) then 'colChoice_' else 'recChoice_'
+  return not(starts-with(string(name/text/@Text), $prefix))
+]
+| //stages[parent::Flow][not(starts-with(string(name/text/@Text), 'stage_'))]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <!-- A Salesforce Id: 3-character prefix, 2-character instance, a reserved "0" and 9 (+3) characters. -->
+  <rule
+    name="R1HardcodedIdInMetadata"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Do not hardcode record Ids: they are different in each org. Use DeveloperName, custom metadata or a custom label."
+  >
+    <description>
+      Conventions: III. Apex Code Standards, Rule 7, and VI. Validation Rules, Rule 3. Checks Flow string values and
+      formulas, and Validation Rule formulas.
+    </description>
+    <priority>1</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//stringValue[ancestor::Flow][
+  let $value := normalize-space(string-join(text/@Text, ''))
+  return matches($value, '^[a-zA-Z0-9]{5}0[a-zA-Z0-9]{9}([a-zA-Z0-9]{3})?$')
+    and string-length(replace($value, '[^0-9]', '')) >= 5
+]
+| //expression[parent::formulas][ancestor::Flow]
+  [matches(string-join(text/@Text, ''), '["''][a-zA-Z0-9]{5}0[a-zA-Z0-9]{9}([a-zA-Z0-9]{3})?["'']')]
+| //errorConditionFormula[parent::ValidationRule]
+  [matches(string-join(text/@Text, ''), '["''][a-zA-Z0-9]{5}0[a-zA-Z0-9]{9}([a-zA-Z0-9]{3})?["'']')]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1ValidationRuleMissingDescription"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Add a description with the business reason for the Validation Rule."
+  >
+    <description>Conventions: VI. Validation Rules, Rule 3.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//ValidationRule[normalize-space(string-join(description/text/@Text, '')) = '']
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <!-- Heuristic: only custom fields (__c) are counted, because standard field names cannot be told apart. -->
+  <rule
+    name="R1ValidationRuleErrorLocation"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="The rule checks a single field: show the error on that field (errorDisplayField)."
+  >
+    <description>Conventions: VI. Validation Rules, Rule 3.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//ValidationRule[not(errorDisplayField)][
+  count(distinct-values(
+    analyze-string(string-join(errorConditionFormula/text/@Text, ''), '[A-Za-z][A-Za-z0-9_]*__c')//*:match ! string(.)
+  )) = 1
+]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FieldMissingDescription"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Add a description: what the field is used for and how it is populated."
+  >
+    <description>Conventions: IV. Naming Conventions, Rule 7.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//CustomField[ends-with(string(fullName/text/@Text), '__c')][normalize-space(string-join(description/text/@Text, '')) = '']
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FieldBooleanNaming"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Checkbox fields start with Is, Has or Can, for example R1_IsActive__c."
+  >
+    <description>Conventions: IV. Naming Conventions, Rule 7.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//CustomField[type/text/@Text = 'Checkbox'][ends-with(string(fullName/text/@Text), '__c')]
+  [not(matches(replace(string(fullName/text/@Text), '^R1_', ''), '^(Is|Has|Can)[A-Z_]'))]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FieldDateNaming"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Date fields end with Date and Date/Time fields end with DateTime, for example R1_ContractEndDate__c."
+  >
+    <description>Conventions: IV. Naming Conventions, Rule 7.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//CustomField[ends-with(string(fullName/text/@Text), '__c')][
+  let $name := string(fullName/text/@Text), $type := string(type/text/@Text)
+  return ($type = 'Date' and not(ends-with($name, 'Date__c')))
+    or ($type = 'DateTime' and not(ends-with($name, 'DateTime__c')))
+]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+
+  <rule
+    name="R1FieldLookupNaming"
+    language="xml"
+    class="net.sourceforge.pmd.lang.rule.xpath.XPathRule"
+    message="Name lookup and master-detail fields after the related object, without the word Id."
+  >
+    <description>Conventions: IV. Naming Conventions, Rule 7.</description>
+    <priority>3</priority>
+    <properties>
+      <property name="xpath">
+        <value
+        ><![CDATA[
+//CustomField[type/text/@Text = ('Lookup', 'MasterDetail')][matches(string(fullName/text/@Text), 'Id__c$')]
+        ]]></value>
+      </property>
+    </properties>
+  </rule>
+</ruleset>

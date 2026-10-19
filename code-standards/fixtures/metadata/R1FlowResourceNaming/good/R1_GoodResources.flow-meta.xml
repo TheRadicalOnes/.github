@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+<description>Fixture flow.</description>
+<label>Fixture</label>
+
+<variables><name>recordId</name><dataType
+    >String</dataType></variables><variables><name>varB_IsReady</name><dataType
+    >Boolean</dataType></variables><variables><name>varR_Leads</name><dataType
+    >SObject</dataType><isCollection>true</isCollection></variables><formulas
+  ><name>forN_Total</name><dataType>Number</dataType><expression
+    >1 + 1</expression></formulas><constants><name>con_PiValue</name><dataType
+    >Number</dataType></constants><textTemplates><name
+    >textT_EmailBody</name><text>Hello</text></textTemplates><choices><name
+    >choice_Open</name><dataType>String</dataType></choices><dynamicChoiceSets
+  ><name>picChoice_StageName</name><dataType>Picklist</dataType><picklistField
+    >StageName</picklistField></dynamicChoiceSets>
+</Flow>

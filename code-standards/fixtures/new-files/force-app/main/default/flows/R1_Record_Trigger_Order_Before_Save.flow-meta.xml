@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+<actionCalls>
+<name>Notify</name>
+<label>Notify Owner</label>
+</actionCalls>
+<description>Fixture.</description>
+<label>Record-Trigger: Order Before Save</label>
+<processType>AutoLaunchedFlow</processType>
+<start>
+<object>Order</object>
+<triggerType>RecordBeforeSave</triggerType>
+</start>
+</Flow>

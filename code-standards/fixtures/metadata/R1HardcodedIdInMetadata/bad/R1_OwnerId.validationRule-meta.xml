@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata"><fullName
+  >R1_Owner_NotFixed</fullName><active>true</active><errorConditionFormula
+  >OwnerId = "0055e000003ABCd"</errorConditionFormula><errorMessage
+  >Fixture.</errorMessage></ValidationRule>

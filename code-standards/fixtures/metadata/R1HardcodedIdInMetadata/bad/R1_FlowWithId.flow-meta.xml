@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+<description>Fixture flow.</description>
+<label>Fixture</label>
+
+<assignments><name>Set_Owner</name><assignmentItems><assignToReference
+      >varT_OwnerId</assignToReference><operator>Assign</operator><value
+      ><stringValue
+        >0055e000003ABCdAAO</stringValue></value></assignmentItems></assignments>
+</Flow>

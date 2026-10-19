@@ -7,6 +7,7 @@ Organization-wide defaults for TheRadicalOnes. GitHub uses these in any repo tha
 | [`.github/pull_request_template.md`](.github/pull_request_template.md) | Default PR template |
 | [`.github/workflows/pr-template.yml`](.github/workflows/pr-template.yml) | Reusable workflow that adds the PR template to PRs opened outside the website (Gearset, CLI, IDEs) |
 | [`.github/workflows/request-review-slack.yml`](.github/workflows/request-review-slack.yml) | Reusable workflow that posts a PR to Slack when it has the `needs review` label and isn't a draft |
+| [`.github/workflows/code-standards.yml`](.github/workflows/code-standards.yml) | Reusable workflow that flags violations of the R1 Code Conventions in Salesforce PRs (rules and scripts in [`code-standards/`](code-standards)) |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Default contributing guide: PR conventions, and where to find each project's branch and release rules |
 
 Edit a file here and it changes for every repo that uses the default.
@@ -53,3 +54,32 @@ jobs:
 It posts when the `needs review` label is added to a non-draft PR, or when a draft that already has the label is marked "Ready for review". Drafts are never posted.
 
 The repo needs a `needs review` label, and the file has to be on every branch that PRs target (`main`, `development`, etc.): the workflow only runs for PRs whose target branch contains it. The Slack webhook comes from the org secret `SLACK_WEBHOOK_URL`.
+
+## Adding the code standards check to a repo
+
+To flag violations of the R1 Code Conventions in a Salesforce repo's PRs, add this file to the repo as `.github/workflows/code-standards.yml`:
+
+```yaml
+name: Code Standards
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: code-standards-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  standards:
+    uses: TheRadicalOnes/.github/.github/workflows/code-standards.yml@v1
+    with:
+      enforce: ${{ vars.STANDARDS_ENFORCE == 'true' }}
+```
+
+It runs PMD and the naming checks on the files the PR adds or changes, and only counts the findings the PR introduces; problems that were already in a modified file are listed in the summary but never fail the check. It reports without blocking until the repo variable `STANDARDS_ENFORCE` is `true`. Unlike the other workflows here, it is pinned to a release tag (`@v1`), so rule changes reach repos only when a new version is released.
+
+Inputs, rules and how to change them: [`code-standards/README.md`](code-standards/README.md).
