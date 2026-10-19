@@ -92,8 +92,15 @@ export const parseChangedLines = (diff) => {
  * @param {string} root Directory the analyzed paths are relative to.
  */
 export const toFindings = (sarif, root) =>
-  (sarif?.runs ?? []).flatMap((run) =>
-    (run.results ?? []).map((result) => {
+  (sarif?.runs ?? []).flatMap((run) => {
+    // PMD documents built-in rules; custom XPath rules have no help link.
+    const docsByRule = new Map(
+      (run.tool?.driver?.rules ?? [])
+        .filter((rule) => rule.helpUri)
+        .map((rule) => [rule.id, rule.helpUri])
+    );
+
+    return (run.results ?? []).map((result) => {
       const location = result.locations?.[0]?.physicalLocation;
       const uri = location?.artifactLocation?.uri ?? "";
       const path = uri.startsWith("file:")
@@ -101,16 +108,19 @@ export const toFindings = (sarif, root) =>
         : uri;
       const line = location?.region?.startLine ?? 1;
 
+      const docsUrl = docsByRule.get(result.ruleId);
+
       return {
         file: toPosix(path),
         line,
         endLine: location?.region?.endLine ?? line,
         rule: result.ruleId,
         severity: result.level === "error" ? "error" : "warning",
-        message: result.message?.text ?? ""
+        message: result.message?.text ?? "",
+        ...(docsUrl ? { docsUrl } : {})
       };
-    })
-  );
+    });
+  });
 
 const findingKey = (finding) => `${finding.rule}\u0000${finding.message}`;
 

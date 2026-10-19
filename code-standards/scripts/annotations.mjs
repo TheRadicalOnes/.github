@@ -1,6 +1,6 @@
 // Prints findings as GitHub workflow annotations (when GITHUB_ACTIONS=true) or as plain lines.
-// A finding has: file, line, rule, severity ("error" | "warning") and message. Annotations add the section of the
-// Code Conventions and a link to the rule reference.
+// A finding has: file, line, rule, severity ("error" | "warning"), message and, for built-in PMD rules, docsUrl.
+// Annotations add the section of the Code Conventions, a link to the rule reference and the PMD docs link.
 import { RULES, ruleDocUrl } from "./rules.mjs";
 
 const escapeProperty = (value) =>
@@ -28,10 +28,15 @@ const escapeMessage = (value) =>
  */
 export const describeFinding = (finding) => {
   const entry = RULES[finding.rule];
-  if (!entry) {
-    return finding.message;
-  }
-  return `${finding.message}\nConventions: ${entry.section} · Rule reference: ${ruleDocUrl(finding.rule)}`;
+  const context = [
+    entry && `Conventions: ${entry.section}`,
+    entry && `Rule reference: ${ruleDocUrl(finding.rule)}`,
+    finding.docsUrl && `PMD docs: ${finding.docsUrl}`
+  ].filter(Boolean);
+
+  return context.length
+    ? `${finding.message}\n${context.join(" · ")}`
+    : finding.message;
 };
 
 export const printFindings = (findings, label) => {

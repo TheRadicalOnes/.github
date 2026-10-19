@@ -71,10 +71,18 @@ test("parseChangedLines reads the added lines of each hunk", () => {
   assert.deepEqual([...parseChangedLines(diff).get("a/Old.cls")], [11, 12, 22]);
 });
 
-test("toFindings maps SARIF levels to severities", () => {
+test("toFindings maps SARIF levels to severities and keeps the PMD docs link", () => {
   const sarif = {
     runs: [
       {
+        tool: {
+          driver: {
+            rules: [
+              { id: "ApexDoc", helpUri: "https://docs.pmd-code.org/apexdoc" },
+              { id: "R1UseAssertClass" }
+            ]
+          }
+        },
         results: [
           {
             ruleId: "ApexDoc",
@@ -114,7 +122,8 @@ test("toFindings maps SARIF levels to severities", () => {
       endLine: 9,
       rule: "ApexDoc",
       severity: "error",
-      message: "Missing ApexDoc comment"
+      message: "Missing ApexDoc comment",
+      docsUrl: "https://docs.pmd-code.org/apexdoc"
     },
     {
       file: "a/Old.cls",

@@ -27,6 +27,19 @@ test("ruleDocUrl links to the category heading at the given ref", () => {
   assert.equal(ruleDocUrl("UnknownRule", "v1"), null);
 });
 
+test("describeFinding adds the PMD docs link when the finding has one", () => {
+  process.env.STANDARDS_REF = "v1";
+
+  assert.equal(
+    describeFinding({
+      rule: "ApexDoc",
+      message: "Missing ApexDoc comment",
+      docsUrl: "https://docs.pmd-code.org/apexdoc"
+    }),
+    "Missing ApexDoc comment\nConventions: VII Rule 3 · Rule reference: https://github.com/TheRadicalOnes/.github/blob/v1/code-standards/README.md#comments · PMD docs: https://docs.pmd-code.org/apexdoc"
+  );
+});
+
 test("describeFinding adds the section and the link to known rules only", () => {
   process.env.STANDARDS_REF = "v1";
 
