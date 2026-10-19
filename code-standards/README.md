@@ -83,39 +83,181 @@ reported:
 
 ## Rules
 
-### PMD (`ruleset.xml`)
+**Error** rules come from the Must rules of the Code Conventions and fail the check when it is enforced.
+**Warning** rules come from the Should rules and never fail it. Thresholds are inclusive: "≥11" means 11 or more.
+The "New files" rules run only on files the pull request adds; all other rules run on added and modified files.
 
-| Area                   | Errors                                                                                                                                                                           | Warnings                                                                                                                                                |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Metrics (limit/target) | Cyclomatic complexity ≥11 per method / ≥81 per class, cognitive ≥16, NCSS ≥51 per method / ≥501 per class (≥1001 test class), ≥5 parameters, ≥16 fields, nesting ≥4, ≥26 methods | The `…Target` copies: cyclomatic ≥8/≥41, cognitive ≥11, NCSS ≥31/≥301 (≥501 test class), ≥4 parameters, ≥11 fields, nesting ≥3, ≥16 methods             |
-| Readability            | Braces on every block, unused local variables, empty if/while/try blocks                                                                                                         | One declaration per line, unused methods, empty blocks, debug without logging level                                                                     |
-| Triggers               | Logic in triggers, direct `Trigger.new[0]` access, SOQL/DML in loops                                                                                                             | High-cost operations in loops, handler not extending `R1_TriggerHandler`                                                                                |
-| Apex                   | Sharing declaration, CRUD/FLS (`USER_MODE`), SOQL injection, named credentials, insecure endpoints, CSRF, hardcoded Ids, empty catch                                             | SOQL outside `*Selector`, non-selective queries, `AuraHandledException` without `setMessage`, `@future`, Queueable without finalizer, `global`          |
-| Tests                  | Assertions (helpers named `assert…` count), assertion messages, `SeeAllData`, `@IsTest` on test methods                                                                          | `System.assert*` instead of `Assert`, test methods outside test classes                                                                                 |
-| Naming                 |                                                                                                                                                                                  | Class, method, field, variable and property naming; test methods `should…_When…` or `should…When…`; interfaces `R1_I…`; enums `R1_…`                    |
-| Comments               | ApexDoc header on every class (methods are optional)                                                                                                                             | `@author`, `@date`, `@company`, `@changes` tags                                                                                                         |
-| Flows                  | More than 50 elements, hardcoded Ids                                                                                                                                             | Missing fault path (Get/Create/Update/Delete Records, Action), description, entry criteria or `R1_BypassTriggers`; Get/DML in a loop; resource prefixes |
-| Validation Rules       | Hardcoded Ids                                                                                                                                                                    | Missing description, error not shown on the single field it checks                                                                                      |
-| Custom fields          |                                                                                                                                                                                  | Missing description, Checkbox not `Is/Has/Can…`, Date not `…Date`, Date/Time not `…DateTime`, lookup ending in `Id`                                     |
+Package directories and the namespace for the new-files rules come from the repo's `sfdx-project.json` (without it:
+`force-app`, no namespace). When the project has a namespace, the namespace replaces the prefix and no naming check
+runs.
 
-### New files (`scripts/check-new-files.mjs`)
+### Rule reference
 
-All errors, except the Flow API name check, which is a warning.
+<!-- rule-reference:start -->
 
-| Component                                                                                                                                       | Convention                                                             |
-| ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Apex class                                                                                                                                      | `R1_<PascalCase>`; test classes end with `_Test` (or `Factory`/`Mock`) |
-| Trigger                                                                                                                                         | `R1_<Object>Trigger`, one trigger per object                           |
-| LWC                                                                                                                                             | `r1_<camelCase>`, no `Cmp` suffix                                      |
-| Aura                                                                                                                                            | `R1_<PascalCase>`; events `R1_<Name>Evt`                               |
-| Visualforce                                                                                                                                     | Pages `R1_<PascalCase>`; components `R1_<PascalCase>Cmp`               |
-| Custom objects and fields                                                                                                                       | `R1_<PascalCase>__c` (`__mdt`, `__e`); namespaced names are skipped    |
-| Validation Rule                                                                                                                                 | `R1_<FieldOrTopic>_<Condition>`                                        |
-| Flow                                                                                                                                            | `R1_` API name, label pattern per Flow type, API name = `R1_` + label  |
-| Permission sets and groups, custom permissions, record types, Lightning pages, apps, tabs, static resources, named credentials, email templates | `R1_` prefix                                                           |
+_Generated from `ruleset.xml` and `scripts/check-new-files.mjs` by `npm run standards:rules`. Do not edit by hand._
 
-Package directories and the namespace come from the repo's `sfdx-project.json` (without it: `force-app`, no
-namespace). When the project has a namespace, the namespace replaces the prefix and no naming check runs.
+**93 rules:** 47 errors and 46 warnings. Rules ending in `Target` are the warning copies of a limit.
+
+#### Complexity and size
+
+| Rule                             | Checks                                      | Threshold                                  | Severity |
+| -------------------------------- | ------------------------------------------- | ------------------------------------------ | -------- |
+| `CyclomaticComplexity`           | Independent paths through a method or class | ≥11 per method, ≥81 per class              | Error    |
+| `CyclomaticComplexityTarget`     | Independent paths through a method or class | ≥8 per method, ≥41 per class               | Warning  |
+| `CognitiveComplexity`            | How hard a method is to understand          | ≥16 per method                             | Error    |
+| `CognitiveComplexityTarget`      | How hard a method is to understand          | ≥11 per method                             | Warning  |
+| `NcssCount`                      | Lines of code of a method or class          | ≥51 lines per method, ≥501 lines per class | Error    |
+| `NcssCountTarget`                | Lines of code of a method or class          | ≥31 lines per method, ≥301 lines per class | Warning  |
+| `NcssCountTestClass`             | Lines of code of a test class               | ≥1001 lines per test class                 | Error    |
+| `NcssCountTestClassTarget`       | Lines of code of a test class               | ≥501 lines per test class                  | Warning  |
+| `ExcessiveParameterList`         | Parameters per method                       | ≥5 parameters                              | Error    |
+| `ExcessiveParameterListTarget`   | Parameters per method                       | ≥4 parameters                              | Warning  |
+| `TooManyFields`                  | Fields per class                            | ≥16 fields                                 | Error    |
+| `TooManyFieldsTarget`            | Fields per class                            | ≥11 fields                                 | Warning  |
+| `AvoidDeeplyNestedIfStmts`       | Nesting depth of if statements              | 4 or more levels                           | Error    |
+| `AvoidDeeplyNestedIfStmtsTarget` | Nesting depth of if statements              | 3 or more levels                           | Warning  |
+| `R1TooManyMethods`               | Methods per class (constructors excluded)   | ≥26 methods                                | Error    |
+| `R1TooManyMethodsTarget`         | Methods per class (constructors excluded)   | ≥16 methods                                | Warning  |
+
+#### Readability and dead code
+
+| Rule                          | Checks                                 | Threshold | Severity |
+| ----------------------------- | -------------------------------------- | --------- | -------- |
+| `IfStmtsMustUseBraces`        | `if` without braces                    | —         | Error    |
+| `IfElseStmtsMustUseBraces`    | `if`/`else` without braces             | —         | Error    |
+| `ForLoopsMustUseBraces`       | `for` without braces                   | —         | Error    |
+| `WhileLoopsMustUseBraces`     | `while` without braces                 | —         | Error    |
+| `OneDeclarationPerLine`       | Several variables declared on one line | —         | Warning  |
+| `UnusedLocalVariable`         | Local variables that are never used    | —         | Error    |
+| `UnusedMethod`                | Private methods that are never called  | —         | Warning  |
+| `EmptyIfStmt`                 | Empty `if` blocks                      | —         | Error    |
+| `EmptyWhileStmt`              | Empty `while` blocks                   | —         | Error    |
+| `EmptyTryOrFinallyBlock`      | Empty `try` or `finally` blocks        | —         | Error    |
+| `EmptyStatementBlock`         | Other empty blocks                     | —         | Warning  |
+| `DebugsShouldUseLoggingLevel` | `System.debug` without a logging level | —         | Warning  |
+
+#### Triggers
+
+| Rule                          | Checks                                                                           | Threshold | Severity |
+| ----------------------------- | -------------------------------------------------------------------------------- | --------- | -------- |
+| `AvoidLogicInTrigger`         | Logic inside the trigger instead of its handler                                  | —         | Error    |
+| `AvoidDirectAccessTriggerMap` | Direct access such as `Trigger.new[0]`                                           | —         | Error    |
+| `R1HandlerExtendsBase`        | Handlers not extending `R1_TriggerHandler` (managed-package frameworks excluded) | —         | Warning  |
+
+#### Security
+
+| Rule                        | Checks                                                                   | Threshold | Severity |
+| --------------------------- | ------------------------------------------------------------------------ | --------- | -------- |
+| `ApexSharingViolations`     | Classes with SOQL/DML and no sharing declaration                         | —         | Error    |
+| `ApexCRUDViolation`         | SOQL/DML without CRUD/FLS checks or user mode (custom metadata excluded) | —         | Error    |
+| `ApexSOQLInjection`         | Dynamic SOQL built from unescaped input                                  | —         | Error    |
+| `ApexSuggestUsingNamedCred` | Callouts with hardcoded credentials                                      | —         | Error    |
+| `ApexInsecureEndpoint`      | Callouts to `http://` endpoints                                          | —         | Error    |
+| `ApexCSRF`                  | DML in constructors or init methods                                      | —         | Error    |
+| `AvoidHardcodingId`         | Hardcoded record Ids (test classes excluded)                             | —         | Error    |
+
+#### Queries, DML and asynchronous Apex
+
+| Rule                          | Checks                                                      | Threshold | Severity |
+| ----------------------------- | ----------------------------------------------------------- | --------- | -------- |
+| `OperationWithLimitsInLoop`   | SOQL, DML and other limited operations inside loops         | —         | Error    |
+| `OperationWithHighCostInLoop` | Expensive calls (describe, JSON...) inside loops            | —         | Warning  |
+| `AvoidNonRestrictiveQueries`  | Queries without `WHERE` or `LIMIT`                          | —         | Warning  |
+| `R1SoqlOnlyInSelector`        | Queries outside `*Selector` classes (test classes excluded) | —         | Warning  |
+| `AvoidFutureAnnotation`       | `@future` instead of Queueable                              | —         | Warning  |
+| `QueueableWithoutFinalizer`   | Queueable jobs without a finalizer                          | —         | Warning  |
+| `AvoidGlobalModifier`         | `global` where `public` would do                            | —         | Warning  |
+
+#### Error handling
+
+| Rule                        | Checks                                             | Threshold | Severity |
+| --------------------------- | -------------------------------------------------- | --------- | -------- |
+| `EmptyCatchBlock`           | Empty `catch` blocks                               | —         | Error    |
+| `R1AuraExceptionSetMessage` | `AuraHandledException` thrown without `setMessage` | —         | Warning  |
+
+#### Tests
+
+| Rule                                           | Checks                                                    | Threshold | Severity |
+| ---------------------------------------------- | --------------------------------------------------------- | --------- | -------- |
+| `ApexUnitTestClassShouldHaveAsserts`           | Test methods without assertions (`assert…` helpers count) | —         | Error    |
+| `ApexAssertionsShouldIncludeMessage`           | Assertions without a message                              | —         | Error    |
+| `ApexUnitTestShouldNotUseSeeAllDataTrue`       | `SeeAllData=true`                                         | —         | Error    |
+| `ApexUnitTestMethodShouldHaveIsTestAnnotation` | Test methods without `@IsTest`                            | —         | Error    |
+| `TestMethodsMustBeInTestClasses`               | Test methods outside test classes                         | —         | Warning  |
+| `R1UseAssertClass`                             | `System.assert*` instead of the `Assert` class            | —         | Warning  |
+
+#### Naming
+
+| Rule                                 | Checks                                                                     | Threshold | Severity |
+| ------------------------------------ | -------------------------------------------------------------------------- | --------- | -------- |
+| `ClassNamingConventions`             | Class names in Pascal Case                                                 | —         | Warning  |
+| `MethodNamingConventions`            | Method names in camel Case; test methods `should…_When…` or `should…When…` | —         | Warning  |
+| `FieldNamingConventions`             | Field names; constants in `SNAKE_CASE`                                     | —         | Warning  |
+| `FormalParameterNamingConventions`   | Parameter names in camel Case                                              | —         | Warning  |
+| `LocalVariableNamingConventions`     | Local variable names in camel Case                                         | —         | Warning  |
+| `PropertyNamingConventions`          | Property names in camel Case                                               | —         | Warning  |
+| `MethodWithSameNameAsEnclosingClass` | Methods named like their class                                             | —         | Warning  |
+| `AvoidNonExistentAnnotations`        | Annotations that do not exist                                              | —         | Warning  |
+| `R1InterfaceNaming`                  | Top-level interfaces named `R1_I…`                                         | —         | Warning  |
+| `R1EnumNaming`                       | Top-level enums named `R1_…`                                               | —         | Warning  |
+
+#### Comments
+
+| Rule             | Checks                                                       | Threshold | Severity |
+| ---------------- | ------------------------------------------------------------ | --------- | -------- |
+| `ApexDoc`        | ApexDoc header on every class (method comments are optional) | —         | Error    |
+| `R1NoAuthorTags` | `@author`, `@date`, `@company` or `@changes` in ApexDoc      | —         | Warning  |
+
+#### Flows
+
+| Rule                         | Checks                                                                              | Threshold    | Severity |
+| ---------------------------- | ----------------------------------------------------------------------------------- | ------------ | -------- |
+| `R1FlowMissingFaultPath`     | Get/Create/Update/Delete Records and Action elements without a fault path           | —            | Warning  |
+| `R1FlowMissingDescription`   | Flows without a description                                                         | —            | Warning  |
+| `R1FlowMissingEntryCriteria` | Record-triggered Flows without entry conditions                                     | —            | Warning  |
+| `R1FlowBypassPermission`     | Record-triggered Flows without `$Permission.R1_BypassTriggers` in the entry formula | —            | Warning  |
+| `R1FlowTooManyElements`      | Elements per Flow                                                                   | ≥51 elements | Error    |
+| `R1FlowDbInLoop`             | Get/Create/Update/Delete Records inside a loop                                      | —            | Warning  |
+| `R1FlowResourceNaming`       | Resource prefixes (`varB_`, `forN_`, `con_`, `textT_`…)                             | —            | Warning  |
+| `R1HardcodedIdInMetadata`    | Hardcoded record Ids in Flow values and formulas, and in Validation Rule formulas   | —            | Error    |
+
+#### Validation Rules
+
+| Rule                                 | Checks                                                            | Threshold | Severity |
+| ------------------------------------ | ----------------------------------------------------------------- | --------- | -------- |
+| `R1ValidationRuleMissingDescription` | Validation Rules without a description                            | —         | Warning  |
+| `R1ValidationRuleErrorLocation`      | Error shown at the top of the page when the rule checks one field | —         | Warning  |
+
+#### Custom fields
+
+| Rule                        | Checks                                                                      | Threshold | Severity |
+| --------------------------- | --------------------------------------------------------------------------- | --------- | -------- |
+| `R1FieldMissingDescription` | Custom fields without a description                                         | —         | Warning  |
+| `R1FieldBooleanNaming`      | Checkbox fields not starting with `Is`, `Has` or `Can`                      | —         | Warning  |
+| `R1FieldDateNaming`         | Date fields not ending in `Date`, Date/Time fields not ending in `DateTime` | —         | Warning  |
+| `R1FieldLookupNaming`       | Lookup and master-detail fields ending in `Id`                              | —         | Warning  |
+
+#### New files
+
+| Rule                    | Checks                                                                                           | Threshold | Severity |
+| ----------------------- | ------------------------------------------------------------------------------------------------ | --------- | -------- |
+| `R1ApexClassName`       | Apex classes named `R1_<PascalCase>`                                                             | —         | Error    |
+| `R1TestClassSuffix`     | Test classes end with `_Test` (`Factory`/`Mock` for test support); only test classes do          | —         | Error    |
+| `R1TriggerName`         | Triggers named `R1_<Object>Trigger`                                                              | —         | Error    |
+| `R1OneTriggerPerObject` | A second trigger on the same object                                                              | —         | Error    |
+| `R1FlowName`            | Flow API names starting with `R1_`                                                               | —         | Error    |
+| `R1FlowLabel`           | Flow labels following the pattern of their type (`Record-Trigger: <Object> After Save`…)         | —         | Error    |
+| `R1FlowApiName`         | Flow API name equal to `R1_` + label                                                             | —         | Warning  |
+| `R1LwcName`             | LWC folders named `r1_<camelCase>`, without `Cmp`                                                | —         | Error    |
+| `R1AuraName`            | Aura bundles `R1_<PascalCase>`, events `R1_<Name>Evt`                                            | —         | Error    |
+| `R1VisualforceName`     | Visualforce pages `R1_<PascalCase>`, components `R1_<PascalCase>Cmp`                             | —         | Error    |
+| `R1CustomObjectName`    | Custom objects, metadata types and platform events named `R1_<PascalCase>`                       | —         | Error    |
+| `R1CustomFieldName`     | Custom fields named `R1_<PascalCase>__c` (namespaced fields skipped)                             | —         | Error    |
+| `R1ValidationRuleName`  | Validation Rules named `R1_<FieldOrTopic>_<Condition>`                                           | —         | Error    |
+| `R1MetadataPrefix`      | `R1_` prefix on permission sets, custom permissions, record types, apps, tabs and other metadata | —         | Error    |
+
+<!-- rule-reference:end -->
 
 ### Not automated
 
@@ -142,13 +284,16 @@ Without `--base`, `check-pmd.mjs` analyzes all of `force-app`.
 
 1. Edit `ruleset.xml` or the scripts, and add or update a fixture for every rule you touch: every
    `fixtures/<group>/<Rule>/bad` file must report the rule and no `good` file may.
-2. Run the tests (the **Code Standards self-test** workflow also runs them on every pull request):
+2. Regenerate the rule reference with `npm run standards:rules` (a new rule also needs its category and
+   description in `scripts/rule-reference.mjs`).
+3. Run the tests (the **Code Standards self-test** workflow also runs them on every pull request, including a check
+   that the rule reference is up to date):
 
    ```bash
    PMD_BIN=/path/to/pmd npm run standards:test
    ```
 
-3. After the change is merged to `main`, release it: tag `v1.x.y` and move the `v1` tag to the same commit. Repos
+4. After the change is merged to `main`, release it: tag `v1.x.y` and move the `v1` tag to the same commit. Repos
    pinned to `@v1` get it on their next run. A change that breaks the inputs needs a new major tag (`v2`).
 
 ## Suppressing a finding
