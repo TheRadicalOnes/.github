@@ -16,7 +16,6 @@ import { fileURLToPath } from "node:url";
 import { printFindings } from "./annotations.mjs";
 
 const PASCAL = "[A-Z][A-Za-z0-9]*";
-const DOC = "Code Conventions";
 
 // Names with a namespace (for example OrderApi__Item__c) belong to a managed package.
 const NAMESPACED = /^[A-Za-z][A-Za-z0-9]*__[A-Za-z]/;
@@ -113,7 +112,7 @@ const checkApexClass = (file, name, source) => {
       error(
         file,
         "R1ApexClassName",
-        `Apex class ${name} must start with R1_ followed by Pascal Case (${DOC}, IV Rule 9).`
+        `Apex class ${name} must start with R1_ followed by Pascal Case.`
       )
     );
   }
@@ -123,7 +122,7 @@ const checkApexClass = (file, name, source) => {
       error(
         file,
         "R1TestClassSuffix",
-        `Test class ${name} must end with _Test, or with Factory or Mock if it only supports tests (${DOC}, IV Rule 10).`
+        `Test class ${name} must end with _Test, or with Factory or Mock if it only supports tests.`
       )
     );
   }
@@ -133,7 +132,7 @@ const checkApexClass = (file, name, source) => {
       error(
         file,
         "R1TestClassSuffix",
-        `${name} ends with _Test but is not annotated with @IsTest (${DOC}, IV Rule 10).`
+        `${name} ends with _Test but is not annotated with @IsTest.`
       )
     );
   }
@@ -161,7 +160,7 @@ const checkTrigger = (file, name, source, triggersByObject) => {
       error(
         file,
         "R1TriggerName",
-        `Trigger on ${objectName} must be named ${expected} (${DOC}, II Rule 1).`
+        `Trigger on ${objectName} must be named ${expected}.`
       )
     );
   }
@@ -174,7 +173,7 @@ const checkTrigger = (file, name, source, triggersByObject) => {
       error(
         file,
         "R1OneTriggerPerObject",
-        `${objectName} already has a trigger (${others.join(", ")}). Each object must have exactly one trigger (${DOC}, II Rule 1).`
+        `${objectName} already has a trigger (${others.join(", ")}). Each object must have exactly one trigger.`
       )
     );
   }
@@ -219,11 +218,7 @@ const checkFlow = (file, name, xml) => {
 
   if (!new RegExp("^R1_[A-Za-z0-9_]+$").test(name)) {
     findings.push(
-      error(
-        file,
-        "R1FlowName",
-        `Flow API name ${name} must start with R1_ (${DOC}, V Rule 2).`
-      )
+      error(file, "R1FlowName", `Flow API name ${name} must start with R1_.`)
     );
   }
 
@@ -238,7 +233,7 @@ const checkFlow = (file, name, xml) => {
       error(
         file,
         "R1FlowLabel",
-        `Flow label "${label}" must follow the pattern "${example}" (${DOC}, V Rule 2).`
+        `Flow label "${label}" must follow the pattern "${example}".`
       )
     );
     return findings;
@@ -250,7 +245,7 @@ const checkFlow = (file, name, xml) => {
       warning(
         file,
         "R1FlowApiName",
-        `Flow API name should be ${expectedName}: the R1_ prefix followed by the label (${DOC}, V Rule 2).`
+        `Flow API name should be ${expectedName}: the R1_ prefix followed by the label.`
       )
     );
   }
@@ -265,21 +260,20 @@ const NAME_RULES = [
     rule: "R1LwcName",
     valid: (name) => /^r1_[a-z][A-Za-z0-9]*$/.test(name) && !/Cmp$/i.test(name),
     message: (name) =>
-      `LWC ${name} must follow r1_<componentName> in camel Case, without a Cmp suffix (${DOC}, IV Rule 17).`
+      `LWC ${name} must follow r1_<componentName> in camel Case, without a Cmp suffix.`
   },
   {
     path: /\/aura\/([^/]+)\/\1\.evt$/,
     rule: "R1AuraName",
     valid: (name) => new RegExp(`^R1_${PASCAL}Evt$`).test(name),
-    message: (name) =>
-      `Aura event ${name} must follow R1_<EventName>Evt (${DOC}, IV Rule 19).`
+    message: (name) => `Aura event ${name} must follow R1_<EventName>Evt.`
   },
   {
     path: /\/aura\/([^/]+)\/\1\.(cmp|app)$/,
     rule: "R1AuraName",
     valid: (name) => new RegExp(`^R1_${PASCAL}$`).test(name),
     message: (name) =>
-      `Aura bundle ${name} must start with R1_ followed by Pascal Case (${DOC}, R1_ Prefix Policy).`
+      `Aura bundle ${name} must start with R1_ followed by Pascal Case.`
   },
   {
     path: /\/pages\/([^/]+)\.page$/,
@@ -287,14 +281,13 @@ const NAME_RULES = [
     valid: (name) =>
       new RegExp(`^R1_${PASCAL}$`).test(name) && !name.endsWith("Cmp"),
     message: (name) =>
-      `Visualforce page ${name} must follow R1_<ObjectOrController><Description> (${DOC}, IV Rule 18).`
+      `Visualforce page ${name} must follow R1_<ObjectOrController><Description>.`
   },
   {
     path: /\/components\/([^/]+)\.component$/,
     rule: "R1VisualforceName",
     valid: (name) => new RegExp(`^R1_${PASCAL}Cmp$`).test(name),
-    message: (name) =>
-      `Visualforce component ${name} must end with Cmp (${DOC}, IV Rule 18).`
+    message: (name) => `Visualforce component ${name} must end with Cmp.`
   },
   {
     path: /\/objects\/([^/]+)\/\1\.object-meta\.xml$/,
@@ -304,7 +297,7 @@ const NAME_RULES = [
       !NAMESPACED.test(name.replace(/__(c|mdt|e)$/, "")),
     valid: (name) => new RegExp(`^R1_${PASCAL}__(c|mdt|e)$`).test(name),
     message: (name) =>
-      `Custom object ${name} must start with R1_ followed by a singular Pascal Case name (${DOC}, IV Rule 6).`
+      `Custom object ${name} must start with R1_ followed by a singular Pascal Case name.`
   },
   {
     path: /\/objects\/[^/]+\/fields\/([^/]+)\.field-meta\.xml$/,
@@ -313,14 +306,14 @@ const NAME_RULES = [
       name.endsWith("__c") && !NAMESPACED.test(name.replace(/__c$/, "")),
     valid: (name) => new RegExp(`^R1_${PASCAL}__c$`).test(name),
     message: (name) =>
-      `Custom field ${name} must start with R1_ followed by Pascal Case (${DOC}, IV Rule 7).`
+      `Custom field ${name} must start with R1_ followed by Pascal Case.`
   },
   {
     path: /\/objects\/[^/]+\/validationRules\/([^/]+)\.validationRule-meta\.xml$/,
     rule: "R1ValidationRuleName",
     valid: (name) => new RegExp(`^R1_${PASCAL}_${PASCAL}$`).test(name),
     message: (name) =>
-      `Validation Rule ${name} must follow R1_<FieldOrTopic>_<Condition> (${DOC}, VI Rule 2).`
+      `Validation Rule ${name} must follow R1_<FieldOrTopic>_<Condition>.`
   },
   ...[
     [
@@ -349,8 +342,7 @@ const NAME_RULES = [
     path,
     rule: "R1MetadataPrefix",
     valid: (name) => new RegExp(`^R1_${PASCAL}`).test(name),
-    message: (name) =>
-      `${type} ${name} must start with R1_ (${DOC}, R1_ Prefix Policy).`
+    message: (name) => `${type} ${name} must start with R1_.`
   }))
 ];
 

@@ -5,305 +5,14 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { CATEGORIES, RULES } from "./rules.mjs";
+
 const dir = fileURLToPath(new URL("../", import.meta.url));
 const RULESET = `${dir}ruleset.xml`;
 const NEW_FILES_SCRIPT = `${dir}scripts/check-new-files.mjs`;
 const README = `${dir}README.md`;
 const START = "<!-- rule-reference:start -->";
 const END = "<!-- rule-reference:end -->";
-
-const CATEGORIES = [
-  "Complexity and size",
-  "Readability and dead code",
-  "Triggers",
-  "Security",
-  "Queries, DML and asynchronous Apex",
-  "Error handling",
-  "Tests",
-  "Naming",
-  "Comments",
-  "Flows",
-  "Validation Rules",
-  "Custom fields",
-  "New files"
-];
-
-// [category, what the rule checks] for every rule. Custom rules use their own message when no text is given here.
-const RULES = {
-  CyclomaticComplexity: [
-    "Complexity and size",
-    "Independent paths through a method or class"
-  ],
-  CyclomaticComplexityTarget: [
-    "Complexity and size",
-    "Independent paths through a method or class"
-  ],
-  CognitiveComplexity: [
-    "Complexity and size",
-    "How hard a method is to understand"
-  ],
-  CognitiveComplexityTarget: [
-    "Complexity and size",
-    "How hard a method is to understand"
-  ],
-  NcssCount: ["Complexity and size", "Lines of code of a method or class"],
-  NcssCountTarget: [
-    "Complexity and size",
-    "Lines of code of a method or class"
-  ],
-  NcssCountTestClass: ["Complexity and size", "Lines of code of a test class"],
-  NcssCountTestClassTarget: [
-    "Complexity and size",
-    "Lines of code of a test class"
-  ],
-  ExcessiveParameterList: ["Complexity and size", "Parameters per method"],
-  ExcessiveParameterListTarget: [
-    "Complexity and size",
-    "Parameters per method"
-  ],
-  TooManyFields: ["Complexity and size", "Fields per class"],
-  TooManyFieldsTarget: ["Complexity and size", "Fields per class"],
-  AvoidDeeplyNestedIfStmts: [
-    "Complexity and size",
-    "Nesting depth of if statements"
-  ],
-  AvoidDeeplyNestedIfStmtsTarget: [
-    "Complexity and size",
-    "Nesting depth of if statements"
-  ],
-  R1TooManyMethods: [
-    "Complexity and size",
-    "Methods per class (constructors excluded)"
-  ],
-  R1TooManyMethodsTarget: [
-    "Complexity and size",
-    "Methods per class (constructors excluded)"
-  ],
-  IfStmtsMustUseBraces: ["Readability and dead code", "`if` without braces"],
-  IfElseStmtsMustUseBraces: [
-    "Readability and dead code",
-    "`if`/`else` without braces"
-  ],
-  ForLoopsMustUseBraces: ["Readability and dead code", "`for` without braces"],
-  WhileLoopsMustUseBraces: [
-    "Readability and dead code",
-    "`while` without braces"
-  ],
-  OneDeclarationPerLine: [
-    "Readability and dead code",
-    "Several variables declared on one line"
-  ],
-  UnusedLocalVariable: [
-    "Readability and dead code",
-    "Local variables that are never used"
-  ],
-  UnusedMethod: [
-    "Readability and dead code",
-    "Private methods that are never called"
-  ],
-  EmptyIfStmt: ["Readability and dead code", "Empty `if` blocks"],
-  EmptyWhileStmt: ["Readability and dead code", "Empty `while` blocks"],
-  EmptyTryOrFinallyBlock: [
-    "Readability and dead code",
-    "Empty `try` or `finally` blocks"
-  ],
-  EmptyStatementBlock: ["Readability and dead code", "Other empty blocks"],
-  DebugsShouldUseLoggingLevel: [
-    "Readability and dead code",
-    "`System.debug` without a logging level"
-  ],
-  AvoidLogicInTrigger: [
-    "Triggers",
-    "Logic inside the trigger instead of its handler"
-  ],
-  AvoidDirectAccessTriggerMap: [
-    "Triggers",
-    "Direct access such as `Trigger.new[0]`"
-  ],
-  R1HandlerExtendsBase: [
-    "Triggers",
-    "Handlers not extending `R1_TriggerHandler` (managed-package frameworks excluded)"
-  ],
-  ApexSharingViolations: [
-    "Security",
-    "Classes with SOQL/DML and no sharing declaration"
-  ],
-  ApexCRUDViolation: [
-    "Security",
-    "SOQL/DML without CRUD/FLS checks or user mode (custom metadata excluded)"
-  ],
-  ApexSOQLInjection: ["Security", "Dynamic SOQL built from unescaped input"],
-  ApexSuggestUsingNamedCred: [
-    "Security",
-    "Callouts with hardcoded credentials"
-  ],
-  ApexInsecureEndpoint: ["Security", "Callouts to `http://` endpoints"],
-  ApexCSRF: ["Security", "DML in constructors or init methods"],
-  AvoidHardcodingId: [
-    "Security",
-    "Hardcoded record Ids (test classes excluded)"
-  ],
-  OperationWithLimitsInLoop: [
-    "Queries, DML and asynchronous Apex",
-    "SOQL, DML and other limited operations inside loops"
-  ],
-  OperationWithHighCostInLoop: [
-    "Queries, DML and asynchronous Apex",
-    "Expensive calls (describe, JSON...) inside loops"
-  ],
-  AvoidNonRestrictiveQueries: [
-    "Queries, DML and asynchronous Apex",
-    "Queries without `WHERE` or `LIMIT`"
-  ],
-  R1SoqlOnlyInSelector: [
-    "Queries, DML and asynchronous Apex",
-    "Queries outside `*Selector` classes (test classes excluded)"
-  ],
-  AvoidFutureAnnotation: [
-    "Queries, DML and asynchronous Apex",
-    "`@future` instead of Queueable"
-  ],
-  QueueableWithoutFinalizer: [
-    "Queries, DML and asynchronous Apex",
-    "Queueable jobs without a finalizer"
-  ],
-  AvoidGlobalModifier: [
-    "Queries, DML and asynchronous Apex",
-    "`global` where `public` would do"
-  ],
-  EmptyCatchBlock: ["Error handling", "Empty `catch` blocks"],
-  R1AuraExceptionSetMessage: [
-    "Error handling",
-    "`AuraHandledException` thrown without `setMessage`"
-  ],
-  ApexUnitTestClassShouldHaveAsserts: [
-    "Tests",
-    "Test methods without assertions (`assert…` helpers count)"
-  ],
-  ApexAssertionsShouldIncludeMessage: ["Tests", "Assertions without a message"],
-  ApexUnitTestShouldNotUseSeeAllDataTrue: ["Tests", "`SeeAllData=true`"],
-  ApexUnitTestMethodShouldHaveIsTestAnnotation: [
-    "Tests",
-    "Test methods without `@IsTest`"
-  ],
-  TestMethodsMustBeInTestClasses: [
-    "Tests",
-    "Test methods outside test classes"
-  ],
-  R1UseAssertClass: ["Tests", "`System.assert*` instead of the `Assert` class"],
-  ClassNamingConventions: ["Naming", "Class names in Pascal Case"],
-  MethodNamingConventions: [
-    "Naming",
-    "Method names in camel Case; test methods `should…_When…` or `should…When…`"
-  ],
-  FieldNamingConventions: ["Naming", "Field names; constants in `SNAKE_CASE`"],
-  FormalParameterNamingConventions: ["Naming", "Parameter names in camel Case"],
-  LocalVariableNamingConventions: [
-    "Naming",
-    "Local variable names in camel Case"
-  ],
-  PropertyNamingConventions: ["Naming", "Property names in camel Case"],
-  MethodWithSameNameAsEnclosingClass: [
-    "Naming",
-    "Methods named like their class"
-  ],
-  AvoidNonExistentAnnotations: ["Naming", "Annotations that do not exist"],
-  R1InterfaceNaming: ["Naming", "Top-level interfaces named `R1_I…`"],
-  R1EnumNaming: ["Naming", "Top-level enums named `R1_…`"],
-  ApexDoc: [
-    "Comments",
-    "ApexDoc header on every class (method comments are optional)"
-  ],
-  R1NoAuthorTags: [
-    "Comments",
-    "`@author`, `@date`, `@company` or `@changes` in ApexDoc"
-  ],
-  R1FlowMissingFaultPath: [
-    "Flows",
-    "Get/Create/Update/Delete Records and Action elements without a fault path"
-  ],
-  R1FlowMissingDescription: ["Flows", "Flows without a description"],
-  R1FlowMissingEntryCriteria: [
-    "Flows",
-    "Record-triggered Flows without entry conditions"
-  ],
-  R1FlowBypassPermission: [
-    "Flows",
-    "Record-triggered Flows without `$Permission.R1_BypassTriggers` in the entry formula"
-  ],
-  R1FlowTooManyElements: ["Flows", "Elements per Flow"],
-  R1FlowDbInLoop: ["Flows", "Get/Create/Update/Delete Records inside a loop"],
-  R1FlowResourceNaming: [
-    "Flows",
-    "Resource prefixes (`varB_`, `forN_`, `con_`, `textT_`…)"
-  ],
-  R1HardcodedIdInMetadata: [
-    "Flows",
-    "Hardcoded record Ids in Flow values and formulas, and in Validation Rule formulas"
-  ],
-  R1ValidationRuleMissingDescription: [
-    "Validation Rules",
-    "Validation Rules without a description"
-  ],
-  R1ValidationRuleErrorLocation: [
-    "Validation Rules",
-    "Error shown at the top of the page when the rule checks one field"
-  ],
-  R1FieldMissingDescription: [
-    "Custom fields",
-    "Custom fields without a description"
-  ],
-  R1FieldBooleanNaming: [
-    "Custom fields",
-    "Checkbox fields not starting with `Is`, `Has` or `Can`"
-  ],
-  R1FieldDateNaming: [
-    "Custom fields",
-    "Date fields not ending in `Date`, Date/Time fields not ending in `DateTime`"
-  ],
-  R1FieldLookupNaming: [
-    "Custom fields",
-    "Lookup and master-detail fields ending in `Id`"
-  ],
-  R1ApexClassName: ["New files", "Apex classes named `R1_<PascalCase>`"],
-  R1TestClassSuffix: [
-    "New files",
-    "Test classes end with `_Test` (`Factory`/`Mock` for test support); only test classes do"
-  ],
-  R1TriggerName: ["New files", "Triggers named `R1_<Object>Trigger`"],
-  R1OneTriggerPerObject: ["New files", "A second trigger on the same object"],
-  R1LwcName: ["New files", "LWC folders named `r1_<camelCase>`, without `Cmp`"],
-  R1AuraName: [
-    "New files",
-    "Aura bundles `R1_<PascalCase>`, events `R1_<Name>Evt`"
-  ],
-  R1VisualforceName: [
-    "New files",
-    "Visualforce pages `R1_<PascalCase>`, components `R1_<PascalCase>Cmp`"
-  ],
-  R1CustomObjectName: [
-    "New files",
-    "Custom objects, metadata types and platform events named `R1_<PascalCase>`"
-  ],
-  R1CustomFieldName: [
-    "New files",
-    "Custom fields named `R1_<PascalCase>__c` (namespaced fields skipped)"
-  ],
-  R1ValidationRuleName: [
-    "New files",
-    "Validation Rules named `R1_<FieldOrTopic>_<Condition>`"
-  ],
-  R1FlowName: ["New files", "Flow API names starting with `R1_`"],
-  R1FlowLabel: [
-    "New files",
-    "Flow labels following the pattern of their type (`Record-Trigger: <Object> After Save`…)"
-  ],
-  R1FlowApiName: ["New files", "Flow API name equal to `R1_` + label"],
-  R1MetadataPrefix: [
-    "New files",
-    "`R1_` prefix on permission sets, custom permissions, record types, apps, tabs and other metadata"
-  ]
-};
 
 const SEVERITY = { 1: "Error", 3: "Warning" };
 
@@ -398,7 +107,7 @@ export const buildReference = () => {
     .map((rule) => rule.name);
   if (missing.length > 0) {
     throw new Error(
-      `Add a category and description to RULES in rule-reference.mjs for: ${missing.join(", ")}`
+      `Add an entry to RULES in rules.mjs for: ${missing.join(", ")}`
     );
   }
 
@@ -411,20 +120,22 @@ export const buildReference = () => {
   const counts = { Error: 0, Warning: 0 };
 
   for (const category of CATEGORIES) {
-    const inCategory = rules.filter((rule) => RULES[rule.name][0] === category);
+    const inCategory = rules.filter(
+      (rule) => RULES[rule.name].category === category
+    );
     if (inCategory.length === 0) {
       continue;
     }
     lines.push(
       `#### ${category}`,
       "",
-      "| Rule | Checks | Threshold | Severity |",
-      "| --- | --- | --- | --- |"
+      "| Rule | Checks | Threshold | Severity | Conventions |",
+      "| --- | --- | --- | --- | --- |"
     );
     for (const rule of inCategory) {
       counts[rule.severity]++;
       lines.push(
-        `| \`${rule.name}\` | ${escapeCell(RULES[rule.name][1])} | ${rule.threshold || "—"} | ${rule.severity} |`
+        `| \`${rule.name}\` | ${escapeCell(RULES[rule.name].checks)} | ${rule.threshold || "—"} | ${rule.severity} | ${RULES[rule.name].section} |`
       );
     }
     lines.push("");

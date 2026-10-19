@@ -40,6 +40,8 @@ jobs:
     env:
       PMD_VERSION: ${{ inputs.pmd-version }}
       STANDARDS_DIR: .r1-standards/code-standards
+      # Annotations and the summary link to the docs at this ref.
+      STANDARDS_REF: ${{ inputs.standards-ref }}
     steps:
       # The pull request head, not the merge commit, so files and line numbers match the diff against the base.
       - name: Checkout

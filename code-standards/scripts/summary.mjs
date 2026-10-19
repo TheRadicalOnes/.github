@@ -5,6 +5,8 @@
 // The job fails on new errors only when STANDARDS_ENFORCE is 'true' (adoption phase otherwise).
 import { appendFileSync, existsSync, readFileSync } from "node:fs";
 
+import { RULES, ruleDocUrl } from "./rules.mjs";
+
 // Rows listed in each findings table; the counts always include every finding.
 const MAX_ROWS = 200;
 
@@ -25,6 +27,14 @@ const readJson = (path) =>
 const escapeCell = (value) =>
   String(value).replace(/\|/g, "\\|").replace(/\n/g, " ");
 
+// Rule name linked to its category in the rule reference, when the rule is in the catalog.
+const ruleLink = (rule) => {
+  const url = ruleDocUrl(rule);
+  return url ? `[${rule}](${url})` : rule;
+};
+
+const section = (rule) => RULES[rule]?.section ?? "";
+
 const countErrors = (findings) =>
   findings.filter((finding) => finding.severity === "error").length;
 
@@ -37,13 +47,13 @@ const findingsTable = (findings) => {
   );
 
   const rows = [
-    "| Severity | File | Rule | Message |",
-    "| --- | --- | --- | --- |",
+    "| Severity | File | Rule | Message | Conventions |",
+    "| --- | --- | --- | --- | --- |",
     ...sorted
       .slice(0, MAX_ROWS)
       .map(
         (finding) =>
-          `| ${finding.severity} | \`${escapeCell(finding.file)}:${finding.line}\` | ${finding.rule} | ${escapeCell(finding.message)} |`
+          `| ${finding.severity} | \`${escapeCell(finding.file)}:${finding.line}\` | ${ruleLink(finding.rule)} | ${escapeCell(finding.message)} | ${section(finding.rule)} |`
       )
   ];
 
@@ -79,10 +89,15 @@ const buildSummary = (newFindings, existingFindings, enforced) => {
       countsByRule.set(key, (countsByRule.get(key) ?? 0) + 1);
     }
 
-    lines.push("| Severity | Rule | Count |", "| --- | --- | --- |");
+    lines.push(
+      "| Severity | Rule | Count | Conventions |",
+      "| --- | --- | --- | --- |"
+    );
     for (const [key, count] of [...countsByRule].sort()) {
       const [severity, rule] = key.split("|");
-      lines.push(`| ${severity} | ${rule} | ${count} |`);
+      lines.push(
+        `| ${severity} | ${ruleLink(rule)} | ${count} | ${section(rule)} |`
+      );
     }
 
     lines.push(
@@ -111,7 +126,7 @@ const buildSummary = (newFindings, existingFindings, enforced) => {
   lines.push(
     "",
     "GitHub shows a limited number of annotations inline in Files changed; this summary lists every finding.",
-    "Rules and severities: [TheRadicalOnes/.github code-standards](https://github.com/TheRadicalOnes/.github/tree/v1/code-standards)."
+    `Rules and severities: [TheRadicalOnes/.github code-standards](https://github.com/TheRadicalOnes/.github/tree/${process.env.STANDARDS_REF || "v1"}/code-standards).`
   );
 
   return lines.join("\n");
